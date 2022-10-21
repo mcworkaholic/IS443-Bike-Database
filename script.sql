@@ -1,4 +1,5 @@
---IS 443/543 Weston Evans and Saicharan Gattepali
+--IS 443/543 Fall Semester 2022
+--Group O - Weston Evans and Saicharan Gattepali
 
 --DROP Statements
 
