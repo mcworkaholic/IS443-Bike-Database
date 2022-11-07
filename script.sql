@@ -1,38 +1,84 @@
 --IS 443/543 Fall Semester 2022
 --Group O - Weston Evans and Saicharan Gattepali
 
---DROP Statements
+--Create a procedure similar to DROP IF EXISTS
+
+CREATE OR REPLACE PROCEDURE DelObject(ObjName varchar2,ObjType varchar2)
+IS
+ v_counter number := 0;   
+begin    
+  if ObjType = 'TABLE' then
+    select count(*) into v_counter from user_tables where table_name = upper(ObjName);
+    if v_counter > 0 then          
+      execute immediate 'drop table ' || ObjName || ' cascade constraints';        
+    end if;   
+  end if;
+  if ObjType = 'PROCEDURE' then
+    select count(*) into v_counter from User_Objects where object_type = 'PROCEDURE' and OBJECT_NAME = upper(ObjName);
+      if v_counter > 0 then          
+        execute immediate 'DROP PROCEDURE ' || ObjName;        
+      end if; 
+  end if;
+  if ObjType = 'FUNCTION' then
+    select count(*) into v_counter from User_Objects where object_type = 'FUNCTION' and OBJECT_NAME = upper(ObjName);
+      if v_counter > 0 then          
+        execute immediate 'DROP FUNCTION ' || ObjName;        
+      end if; 
+  end if;
+  if ObjType = 'TRIGGER' then
+    select count(*) into v_counter from User_Triggers where TRIGGER_NAME = upper(ObjName);
+      if v_counter > 0 then          
+        execute immediate 'DROP TRIGGER ' || ObjName;
+      end if; 
+  end if;
+  if ObjType = 'VIEW' then
+    select count(*) into v_counter from User_Views where VIEW_NAME = upper(ObjName);
+      if v_counter > 0 then          
+        execute immediate 'DROP VIEW ' || ObjName;        
+      end if; 
+  end if;
+  if ObjType = 'SEQUENCE' then
+    select count(*) into v_counter from user_sequences where sequence_name = upper(ObjName);
+      if v_counter > 0 then          
+        execute immediate 'DROP SEQUENCE ' || ObjName;        
+      end if; 
+  end if;
+end;
+/
+-- DROP statements / Execute procedure DelObject for each obj in database
+
+EXECUTE DelObject ('location_id_seq','SEQUENCE'); 
+EXECUTE DelObject ('location_id_incr','TRIGGER'); 
+EXECUTE DelObject ('location','TABLE'); 
+
+EXECUTE DelObject ('member_id_seq','SEQUENCE'); 
+EXECUTE DelObject ('member_id_incr','TRIGGER'); 
+EXECUTE DelObject ('customer','TABLE'); 
+
+EXECUTE DelObject ('category_id_seq','SEQUENCE'); 
+EXECUTE DelObject ('category_id_incr','TRIGGER'); 
+EXECUTE DelObject ('category','TABLE'); 
+
+EXECUTE DelObject ('rental_id_seq','SEQUENCE'); 
+EXECUTE DelObject ('rental_id_incr','TRIGGER'); 
+EXECUTE DelObject ('rental_bike','TABLE'); 
+
+EXECUTE DelObject ('detail_id_seq','SEQUENCE'); 
+EXECUTE DelObject ('detail_id_incr','TRIGGER'); 
+EXECUTE DelObject ('rental_detail','TABLE');
+
+EXECUTE DelObject ('bike_id_seq','SEQUENCE'); 
+EXECUTE DelObject ('bike_id_incr','TRIGGER'); 
+EXECUTE DelObject ('bike','TABLE');
 
 
-DROP SEQUENCE rental_id_seq;
-DROP TRIGGER rental_id_incr;
-DROP TABLE bike_rental;
+EXECUTE DelObject ('manufacturer_id_seq','SEQUENCE'); 
+EXECUTE DelObject ('manufacturer_id_incr','TRIGGER'); 
+EXECUTE DelObject ('manufacturer','TABLE');
 
-DROP SEQUENCE bike_id_seq;
-DROP TRIGGER bike_id_incr;
-DROP TABLE bike;
-
-DROP SEQUENCE category_id_seq;
-DROP TRIGGER category_id_incr;
-DROP TABLE category;
-
-
-DROP SEQUENCE manufacturer_id_seq;
-DROP TRIGGER manufacturer_id_incr;
-DROP TABLE manufacturer;
-
-DROP SEQUENCE member_id_seq;
-DROP TRIGGER member_id_incr;
-DROP TABLE customer;
-
-DROP SEQUENCE staff_id_seq;
-DROP TRIGGER staff_id_incr;
-DROP TABLE staff;
-
-
-DROP SEQUENCE location_id_seq;
-DROP TRIGGER location_id_incr;
-DROP TABLE location;
+EXECUTE DelObject ('staff_id_seq','SEQUENCE'); 
+EXECUTE DelObject ('staff_id_incr','TRIGGER'); 
+EXECUTE DelObject ('staff','TABLE');
 
 --TABLE Creation
 
@@ -53,9 +99,32 @@ BEGIN
 END; 
 /
 
+--Row 1
+INSERT INTO MANUFACTURER (MANUFACTURER_NAME) VALUES ('Santa Cruz');
+--Row 2
+INSERT INTO MANUFACTURER (MANUFACTURER_NAME) VALUES ('Diamondback');
+--Row 3
+INSERT INTO MANUFACTURER (MANUFACTURER_NAME) VALUES ('Raleigh');
+--Row 4
+INSERT INTO MANUFACTURER (MANUFACTURER_NAME) VALUES ('GT');
+--Row 5
+INSERT INTO MANUFACTURER (MANUFACTURER_NAME) VALUES ('Schwinn');
+--Row 6
+INSERT INTO MANUFACTURER (MANUFACTURER_NAME) VALUES ('Canyon');
+--Row 7
+INSERT INTO MANUFACTURER (MANUFACTURER_NAME) VALUES ('Mongoose');
+--Row 8
+INSERT INTO MANUFACTURER (MANUFACTURER_NAME) VALUES ('Ancheer');
+--Row 9
+INSERT INTO MANUFACTURER (MANUFACTURER_NAME) VALUES ('Montague');
+--Row 10
+INSERT INTO MANUFACTURER (MANUFACTURER_NAME) VALUES ('Pinarello');
+
+--TABLE Creation
+
 CREATE TABLE location (
 location_id INTEGER NOT NULL CONSTRAINT location_PK PRIMARY KEY,
-street VARCHAR2(50) NOT NULL,
+street VARCHAR2(50) NOT NULL UNIQUE,
 city VARCHAR2(30) NOT NULL,
 state CHAR(2) NOT NULL,
 zipcode VARCHAR2(10) NOT NULL,
@@ -74,6 +143,15 @@ BEGIN
 END; 
 /
 
+--Row 1
+INSERT INTO LOCATION (LOCATION_ID, STREET, CITY, STATE, ZIPCODE, PHONE) VALUES (1,'101 S Main St','River Falls','WI','54022','715-629-7246');
+--Row 2
+INSERT INTO LOCATION (LOCATION_ID, STREET, CITY, STATE, ZIPCODE, PHONE) VALUES (2,'6028 MN-36','Oakdale','MN','55128','651-777-0188');
+--Row 3
+INSERT INTO LOCATION (LOCATION_ID, STREET, CITY, STATE, ZIPCODE, PHONE) VALUES (3,'1019 1st Ave SE','Aberdeen','SD','57401','605-216-1583');
+
+--TABLE Creation
+
 CREATE TABLE staff (
 staff_id INTEGER CONSTRAINT staff_PK PRIMARY KEY,
 fname VARCHAR2(50) NOT NULL,
@@ -81,8 +159,8 @@ lname VARCHAR2(50) NOT NULL,
 position VARCHAR2(25) NOT NULL,
 address VARCHAR2(25) NOT NULL,
 phone VARCHAR2(20) NOT NULL,
-salary NUMBER NOT NULL,
-location_id INTEGER NOT NULL CONSTRAINT staff_FK REFERENCES location(location_id)
+salary INTEGER NOT NULL,
+location_id INTEGER NOT NULL CONSTRAINT staff_FK REFERENCES location(location_id) ON DELETE CASCADE
 ); 
 
 CREATE SEQUENCE staff_id_seq;
@@ -96,6 +174,8 @@ BEGIN
     FROM DUAL;
 END; 
 /
+
+--TABLE Creation
 
 CREATE TABLE customer (
 member_id INTEGER CONSTRAINT customer_PK PRIMARY KEY,
@@ -122,9 +202,11 @@ BEGIN
     FROM DUAL;
 END; 
 /
+--TABLE Creation
+
 CREATE TABLE category (
 category_id INTEGER CONSTRAINT category_PK PRIMARY KEY,
-category_name VARCHAR2(20) NOT NULL
+category_name VARCHAR2(20) NOT NULL UNIQUE
 ); 
 
 CREATE SEQUENCE category_id_seq;
@@ -139,14 +221,35 @@ BEGIN
 END; 
 /
 
+--Row 1
+INSERT INTO CATEGORY (CATEGORY_NAME) VALUES ('BMX');
+--Row 2
+INSERT INTO CATEGORY (CATEGORY_NAME) VALUES ('road');
+--Row 3
+INSERT INTO CATEGORY (CATEGORY_NAME) VALUES ('mountain');
+--Row 4
+INSERT INTO CATEGORY (CATEGORY_NAME) VALUES ('touring');
+--Row 5
+INSERT INTO CATEGORY (CATEGORY_NAME) VALUES ('folding');
+--Row 6
+INSERT INTO CATEGORY (CATEGORY_NAME) VALUES ('recumbent');
+--Row 7
+INSERT INTO CATEGORY (CATEGORY_NAME) VALUES ('road-electric');
+--Row 8
+INSERT INTO CATEGORY (CATEGORY_NAME) VALUES ('mountain-electric');
+--Row 9
+INSERT INTO CATEGORY (CATEGORY_NAME) VALUES ('folding-electric');
+
+--TABLE Creation
+
 CREATE TABLE bike (
 bike_id INTEGER NOT NULL CONSTRAINT bike_PK PRIMARY KEY,
 description VARCHAR2(250) NOT NULL,
-category_id INTEGER NOT NULL CONSTRAINT category_FK REFERENCES category(category_id),
 status VARCHAR2(3) NOT NULL,
-manufacturer_id INTEGER NOT NULL CONSTRAINT manufacturer_FK REFERENCES manufacturer(manufacturer_id),
-location_id INTEGER CONSTRAINT location_FK REFERENCES location(location_id),
-daily_fee NUMBER NOT NULL
+daily_fee NUMBER NOT NULL,
+category_id INTEGER NOT NULL CONSTRAINT category_FK REFERENCES category(category_id) ON DELETE CASCADE,
+manufacturer_id INTEGER NOT NULL CONSTRAINT manufacturer_FK REFERENCES manufacturer(manufacturer_id) ON DELETE CASCADE,
+location_id INTEGER CONSTRAINT location_FK REFERENCES location(location_id) ON DELETE CASCADE
 ); 
 
 CREATE SEQUENCE bike_id_seq;
@@ -160,22 +263,18 @@ BEGIN
     FROM DUAL;
 END; 
 /
+--TABLE Creation
 
-CREATE TABLE bike_rental (
+CREATE TABLE rental_bike (
 rental_id INTEGER NOT NULL CONSTRAINT bike_rental_PK PRIMARY KEY,
-member_id INTEGER NOT NULL CONSTRAINT member_FK REFERENCES customer(member_id),
-bike_id INTEGER NOT NULL CONSTRAINT bike_FK REFERENCES bike(bike_id),
-rented_out DATE NOT NULL,
-rented_from INTEGER NOT NULL CONSTRAINT rented_from_FK REFERENCES location(location_id),
-exp_return DATE NOT NULL,
-act_return DATE,
-returned_to INTEGER CONSTRAINT returned_FK REFERENCES location(location_id)
+member_id INTEGER NOT NULL CONSTRAINT member_id_FK REFERENCES customer(member_id) ON DELETE CASCADE,
+rented_out DATE NOT NULL
 ); 
 
 CREATE SEQUENCE rental_id_seq;
 
 CREATE TRIGGER rental_id_incr
-BEFORE INSERT ON bike_rental
+BEFORE INSERT ON rental_bike
 FOR EACH ROW
 BEGIN
     SELECT rental_id_seq.nextval
@@ -185,8 +284,32 @@ BEGIN
     INTO :new.rented_out
     FROM DUAL;
 END; 
+/
 
+--TABLE Creation
 
+CREATE TABLE rental_detail (
+detail_id INTEGER NOT NULL CONSTRAINT rental_detail_PK PRIMARY KEY,
+rental_id INTEGER NOT NULL CONSTRAINT rental_id_FK REFERENCES rental_bike(rental_id) ON DELETE CASCADE,
+bike_id INTEGER NOT NULL CONSTRAINT bike_id_FK REFERENCES bike(bike_id) ON DELETE CASCADE,
+rented_from INTEGER NOT NULL CONSTRAINT rented_from_FK REFERENCES location(location_id) ON DELETE CASCADE,
+exp_return DATE NOT NULL,
+act_return DATE,
+returned_to INTEGER CONSTRAINT returned_FK REFERENCES location(location_id) ON DELETE CASCADE,
+total_fee INTEGER NOT NULL
+); 
+
+CREATE SEQUENCE detail_id_seq;
+
+CREATE TRIGGER detail_id_incr
+BEFORE INSERT ON rental_detail
+FOR EACH ROW
+BEGIN
+    SELECT detail_id_seq.nextval
+    INTO :new.detail_id
+    FROM DUAL;
+END; 
+/
 
 
 --INSERT INTO manufacturer (m_name)
@@ -204,6 +327,8 @@ END;
 --
 --DELETE FROM manufacturer
 --WHERE m_code = 1 or m_code = 3 or m_code = 4;
+
+
 
 
 
