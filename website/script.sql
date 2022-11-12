@@ -61,6 +61,7 @@ EXECUTE DelObject ('category','TABLE');
 
 EXECUTE DelObject ('rental_id_seq','SEQUENCE'); 
 EXECUTE DelObject ('rental_id_incr','TRIGGER'); 
+EXECUTE DelObject ('update_bike_out','TRIGGER'); 
 EXECUTE DelObject ('rental_bike','TABLE'); 
 
 EXECUTE DelObject ('detail_id_seq','SEQUENCE'); 
@@ -203,8 +204,8 @@ password VARCHAR2(200) NOT NULL,
 address VARCHAR2(200) NOT NULL,
 phone VARCHAR2(20) NOT NULL,
 registration_date DATE NOT NULL,
-num_rentals NUMBER,
-unpaid_balance NUMBER
+num_rentals INTEGER CONSTRAINT num_rental_check CHECK(num_rentals <= 2),
+unpaid_balance NUMERIC (5,2) CONSTRAINT balance_check CHECK(unpaid_balance < 500.00)
 ); 
 
 CREATE SEQUENCE member_id_seq;
@@ -309,10 +310,21 @@ INSERT INTO BIKE (PRODUCT, DESCRIPTION, CATEGORY_ID, STATUS, MANUFACTURER_ID, LO
 CREATE TABLE rental_bike (
 rental_id INTEGER NOT NULL CONSTRAINT bike_rental_PK PRIMARY KEY,
 member_id INTEGER NOT NULL CONSTRAINT member_id_FK REFERENCES customer(member_id) ON DELETE CASCADE,
+bike_id INTEGER NOT NULL CONSTRAINT bike_fk REFERENCES bike(bike_id) ON DELETE CASCADE,
 rented_out DATE NOT NULL
 ); 
 
 CREATE SEQUENCE rental_id_seq;
+
+CREATE TRIGGER update_bike_out
+AFTER INSERT ON rental_bike
+FOR EACH ROW
+BEGIN
+  UPDATE bike
+  SET bike.status = 'out' WHERE bike.bike_id = :NEW.bike_id;
+END update_bike_out;
+/
+
 
 CREATE TRIGGER rental_id_incr
 BEFORE INSERT ON rental_bike
@@ -358,6 +370,12 @@ END;
 --
 --INSERT INTO customer (fname, lname, address, phone)
 --VALUES('', '', '', '');
+
+--INSERT INTO rental_bike
+--(member_id, bike_id, rented_out)
+--VALUES(1, 1, (TO_DATE('09-19-2022', 'MM-DD-YYYY')));
+
+--ROLLBACK;
 --
 --SELECT * FROM manufacturer;
 --SELECT * FROM customer;
