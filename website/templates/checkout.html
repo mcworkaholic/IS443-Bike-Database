@@ -34,7 +34,7 @@
 								<ul class="list list-unstyled text-2">
 									<li class="mb-0">AVAILABILITY: <strong class="text-color-dark">{{pdata[4].upper()}}</strong></li>
 								</ul>
-								<form enctype="multipart/form-data" method="post" class="cart" action="#">
+								<form enctype="multipart/form-data" method="POST" class="cart" action="#">
 									<hr>
                                     <ul class="list list-unstyled text-2">
 									<strong class="text-color-dark">How Many Days?</strong></li>
@@ -49,7 +49,8 @@
 										<input type="text" class="input-text qty text" id="days" title="Qty" value="1" name="quantity" min="1" step="1">
 										<input type="button" class="plus text-color-hover-light bg-color-hover-primary border-color-hover-primary" value="+">
 									</div>
-									<button type="submit" class="btn btn-dark btn-modern text-uppercase bg-color-hover-primary border-color-hover-primary">Check Out</button>
+									<button type="submit"name="submit_button" value="Checkout" class="btn btn-dark btn-modern text-uppercase bg-color-hover-primary border-color-hover-primary">Check Out</button>
+								</form> 
 									<hr>
 									<div class="d-flex align-items-center mb-4">
 									<ul class="social-icons social-icons-medium social-icons-clean-with-border social-icons-clean-with-border-border-grey social-icons-clean-with-border-icon-dark me-3 mb-0">
@@ -86,7 +87,7 @@
 									<div class="card-body">
 										<div class="row">
 											<div class="col">
-											  	<form class="contact-form" action="#" method="POST">
+											  	<form class="contact-form" enctype="multipart/form-data" action="#" method="POST">
 													<div class="row">
 													</div>
 													<div class="row">
@@ -108,10 +109,9 @@
 															<input type="text" data-format="**-**-****" data-mask="MM-DD-YYYY" value="" maxlength="12" class="form-control text-3 h-auto py-2" name="returndate" required>
 														</div>
 													</div>
-												</form>
 												<div class="row">
 														<div class="form-group col">
-															<input type="submit" value="Return" class="btn btn-dark btn-modern text-uppercase bg-color-hover-primary border-color-hover-primary">
+															<input type="submit" name="submit_button" value="Return" class="btn btn-dark btn-modern text-uppercase bg-color-hover-primary border-color-hover-primary">
 														</div>
 											   </div>
 								          </form> 
