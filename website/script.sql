@@ -104,20 +104,22 @@ INSERT INTO MANUFACTURER (MANUFACTURER_NAME) VALUES ('Santa Cruz');
 --Row 2
 INSERT INTO MANUFACTURER (MANUFACTURER_NAME) VALUES ('Diamondback');
 --Row 3
-INSERT INTO MANUFACTURER (MANUFACTURER_NAME) VALUES ('Raleigh');
+INSERT INTO MANUFACTURER (MANUFACTURER_NAME) VALUES ('Trek');
 --Row 4
-INSERT INTO MANUFACTURER (MANUFACTURER_NAME) VALUES ('GT');
+INSERT INTO MANUFACTURER (MANUFACTURER_NAME) VALUES ('Raleigh');
 --Row 5
-INSERT INTO MANUFACTURER (MANUFACTURER_NAME) VALUES ('Schwinn');
+INSERT INTO MANUFACTURER (MANUFACTURER_NAME) VALUES ('GT');
 --Row 6
-INSERT INTO MANUFACTURER (MANUFACTURER_NAME) VALUES ('Canyon');
+INSERT INTO MANUFACTURER (MANUFACTURER_NAME) VALUES ('Schwinn');
 --Row 7
-INSERT INTO MANUFACTURER (MANUFACTURER_NAME) VALUES ('Mongoose');
+INSERT INTO MANUFACTURER (MANUFACTURER_NAME) VALUES ('Canyon');
 --Row 8
-INSERT INTO MANUFACTURER (MANUFACTURER_NAME) VALUES ('Ancheer');
+INSERT INTO MANUFACTURER (MANUFACTURER_NAME) VALUES ('Mongoose');
 --Row 9
-INSERT INTO MANUFACTURER (MANUFACTURER_NAME) VALUES ('Montague');
+INSERT INTO MANUFACTURER (MANUFACTURER_NAME) VALUES ('Ancheer');
 --Row 10
+INSERT INTO MANUFACTURER (MANUFACTURER_NAME) VALUES ('Montague');
+--Row 11
 INSERT INTO MANUFACTURER (MANUFACTURER_NAME) VALUES ('Pinarello');
 
 --TABLE Creation
@@ -249,19 +251,23 @@ INSERT INTO CATEGORY (CATEGORY_NAME) VALUES ('touring');
 --Row 5
 INSERT INTO CATEGORY (CATEGORY_NAME) VALUES ('folding');
 --Row 6
-INSERT INTO CATEGORY (CATEGORY_NAME) VALUES ('recumbent');
+INSERT INTO CATEGORY (CATEGORY_NAME) VALUES ('commuter');
 --Row 7
-INSERT INTO CATEGORY (CATEGORY_NAME) VALUES ('road-electric');
+INSERT INTO CATEGORY (CATEGORY_NAME) VALUES ('recumbent');
 --Row 8
-INSERT INTO CATEGORY (CATEGORY_NAME) VALUES ('mountain-electric');
+INSERT INTO CATEGORY (CATEGORY_NAME) VALUES ('road-electric');
 --Row 9
+INSERT INTO CATEGORY (CATEGORY_NAME) VALUES ('mountain-electric');
+--Row 10
 INSERT INTO CATEGORY (CATEGORY_NAME) VALUES ('folding-electric');
 
 --TABLE Creation
 
 CREATE TABLE bike (
 bike_id INTEGER NOT NULL CONSTRAINT bike_PK PRIMARY KEY,
-description VARCHAR2(250) NOT NULL,
+product VARCHAR2(25) NOT NULL,
+description VARCHAR2(1000),
+img_path VARCHAR2(250),
 status VARCHAR2(3) NOT NULL,
 daily_fee INTEGER NOT NULL,
 category_id INTEGER NOT NULL CONSTRAINT category_FK REFERENCES category(category_id) ON DELETE CASCADE,
@@ -282,19 +288,21 @@ END;
 /
 
 --Row 1
-INSERT INTO BIKE (DESCRIPTION, CATEGORY_ID, STATUS, MANUFACTURER_ID, LOCATION_ID, DAILY_FEE) VALUES ('Performer 29',1,'in',4,1,40);
+INSERT INTO BIKE (PRODUCT, DESCRIPTION, CATEGORY_ID, STATUS, MANUFACTURER_ID, LOCATION_ID, DAILY_FEE, IMG_PATH) VALUES ('Performer 29','Modern technology providing a super smooth ride and top notch reliability. Chromoly frame and forks, sealed headset and bottom bracket, and 3-piece cranks allow this to be more than just a show bike and can be really ridden without worry. The Performer 29" is a worthy entry into GT''s Heritage line.',1,'in',5,1,40,'GT - Performer 29.png');
 --Row 2
-INSERT INTO BIKE (DESCRIPTION, CATEGORY_ID, STATUS, MANUFACTURER_ID, LOCATION_ID, DAILY_FEE) VALUES ('Atroz 2',3,'in',2,1,80);
+INSERT INTO BIKE (PRODUCT, DESCRIPTION, CATEGORY_ID, STATUS, MANUFACTURER_ID, LOCATION_ID, DAILY_FEE, IMG_PATH) VALUES ('Atroz 2','The Atroz 2 utilizes sealed cartridge bearings in an understated single-pivot design to deliver smooth, durable performance. The Atroz 2 ups the ante with Shimano hydraulic disc brakes, Suntour air-sprung rear suspension and an easy-to-operate single-ring drivetrain — features you usually find on bikes with a whole lot more dollar signs on their price tags.',3,'in',2,1,80,'Diamondback - Atroz2.png');
 --Row 3
-INSERT INTO BIKE (DESCRIPTION, CATEGORY_ID, STATUS, MANUFACTURER_ID, LOCATION_ID, DAILY_FEE) VALUES ('Fastback Carbon 105',2,'in',5,1,120);
+INSERT INTO BIKE (PRODUCT, DESCRIPTION, CATEGORY_ID, STATUS, MANUFACTURER_ID, LOCATION_ID, DAILY_FEE, IMG_PATH) VALUES ('Fastback Carbon 105', 'Designed for advanced to expert riders who want to go farther and faster on a bike built for superior performance.',2,'in',6,1,120, 'Schwinn - Fastback Carbon 105.png');
 --Row 4
-INSERT INTO BIKE (DESCRIPTION, CATEGORY_ID, STATUS, MANUFACTURER_ID, LOCATION_ID, DAILY_FEE) VALUES ('Lux Trail CF 7',3,'in',6,1,150);
+INSERT INTO BIKE (PRODUCT, DESCRIPTION, CATEGORY_ID, STATUS, MANUFACTURER_ID, LOCATION_ID, DAILY_FEE, IMG_PATH) VALUES ('Lux Trail CF 7','More suspension travel, longer and slacker geometry, wider tires: the Lux Trail CF 7 is everything a down country bike should be, with the perfect balance of fast climbing performance and descending capability.',3,'in',7,1,150,'Canyon - Lux Trail CF 7.png');
 --Row 5
-INSERT INTO BIKE (DESCRIPTION, CATEGORY_ID, STATUS, MANUFACTURER_ID, LOCATION_ID, DAILY_FEE) VALUES ('AMA5183',9,'in',8,1,25);
+INSERT INTO BIKE (PRODUCT, DESCRIPTION, CATEGORY_ID, STATUS, MANUFACTURER_ID, LOCATION_ID, DAILY_FEE, IMG_PATH) VALUES ('AMA5183','Ancheer E-Bike, it weighs a mere 12KG/26.5lbs, making it a breeze to carry up to a flight of stairs. You can also leave it anywhere in your office. Convenient and saves space and our time, inspired by the shape of dolphins, also conform to young people''s pursuit of freedom and fashion.',10,'in',9,1,25,'Ancheer - AMA5183.png');
 --Row 6
-INSERT INTO BIKE (DESCRIPTION, CATEGORY_ID, STATUS, MANUFACTURER_ID, LOCATION_ID, DAILY_FEE) VALUES ('Prince Force ETAP AXS 12S',2,'in',10,1,175);
+INSERT INTO BIKE (PRODUCT, DESCRIPTION, CATEGORY_ID, STATUS, MANUFACTURER_ID, LOCATION_ID, DAILY_FEE, IMG_PATH) VALUES ('Prince Force ETAP AXS 12S','A bicycle with technical characteristics and performance standards that outperform many high end Road bikes on the market today, and the reason that the PRINCE  is a real alternative to DOGMA F12. The Prince inherits the DOGMA F12 total cable integration system, called TiCR, which enables a significant aerodynamic advantage.',2,'in',11,1,175,'Pinarello - Prince Force ETAP AXS 12S.png');
 --Row 7
-INSERT INTO BIKE (DESCRIPTION, CATEGORY_ID, STATUS, MANUFACTURER_ID, LOCATION_ID, DAILY_FEE) VALUES ('M-E1',7,'in',9,1,150);
+INSERT INTO BIKE (PRODUCT, DESCRIPTION, CATEGORY_ID, STATUS, MANUFACTURER_ID, LOCATION_ID, DAILY_FEE, IMG_PATH) VALUES ('M-E1','The Montague M-E1 is the world''s first full-size performance foldable e-bike. A revolutionary new e-bike designed for both urban riding and trekking, the M-E1 is equipped with a Shimano Steps E6100 mid-drive motor and a Deore drivetrain, and folds in seconds with a single quick release.',10,'in',10,1,150,'Montague - M-E1.jpg');
+--Row 8
+INSERT INTO BIKE (PRODUCT, DESCRIPTION, CATEGORY_ID, STATUS, MANUFACTURER_ID, LOCATION_ID, DAILY_FEE, IMG_PATH) VALUES ('District 4 Equipped','District 4 Equipped is a hip and stylish high-end city bike designed for fun on cruises, commutes, and trips around town. It has a quiet, low-maintenance Gates CDX belt drive system with an 8-speed Shimano Alfine internal hub for smooth, crisp shifting.',6,'in',3,1,150,'District 4 Equipped.jpg');
 
 --TABLE Creation
 
@@ -362,15 +370,7 @@ END;
 --WHERE m_code = 1 or m_code = 3 or m_code = 4;
 
 
-
-
-
-
-
-
-
-
-
+--SELECT * FROM bike INNER JOIN category ON bike.category_id = category.category_id INNER JOIN manufacturer ON bike.manufacturer_id = manufacturer.manufacturer_id ORDER BY bike_id;
 
 
 
