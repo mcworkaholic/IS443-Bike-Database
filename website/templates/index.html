@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<!-- Basic -->
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">	
+		{% block title%}{{ title }} {% endblock %}
+		<meta name="keywords" content="WebSite Template" />
+		<meta name="description" content="Porto - Multipurpose Website Template">
+		<meta name="author" content="okler.net">
+		<!-- Favicon -->
+		<link rel="shortcut icon" href="img/favicon.ico" type="image/x-icon" />
+		<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+		<!-- Mobile Metas -->
+		<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, shrink-to-fit=no">
+		<!-- Web Fonts  -->
+		<link id="googleFonts" href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700,800%7CShadows+Into+Light%7CPlayfair+Display:400&display=swap" rel="stylesheet" type="text/css">
+		<!-- Vendor CSS -->
+        <link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+        <link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/all.min.css') }}">
+        <link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/animate.compat.css') }}">
+        <link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/simple-line-icons.min.css') }}">
+        <link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/owl.carousel.min.css') }}">
+        <link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/owl.theme.default.min.css') }}">
+        <link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/magnific-popup.min.css') }}">
+        <link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/star-rating.min.css') }}">
+        <link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/theme.min.css') }}">
+		<!-- Theme CSS -->
+        <link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/theme.css') }}">
+        <link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/theme-elements.css') }}">
+        <link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/theme-blog.css') }}">
+        <link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/theme-shop.css') }}">
+        <link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/default.css') }}">
+		<!-- Theme Custom CSS -->
+		<link rel="stylesheet" href="css/custom.css">
+		<!-- Head Libs -->
+		<script src="{{url_for('static', filename='js/modernizr.min.js')}}"></script>
+	</head>
+    <body data-plugin-page-transition>
+	<div class="body">
+			</div>
+			<header id="header" data-plugin-options="{'stickyEnabled': true, 'stickyEnableOnBoxed': true, 'stickyEnableOnMobile': false, 'stickyStartAt': 135, 'stickySetTop': '-135px', 'stickyChangeLogo': true}">
+				<div class="header-body header-body-bottom-border-fixed box-shadow-none border-top-0">
+					<div class="header-top header-top-small-minheight header-top-simple-border-bottom">
+						<div class="container">
+						</div>
+					</div>
+					<div class="header-container container">
+						<div class="header-row py-2">
+							<div class="header-column w-100">
+								<div class="header-row justify-content-between">
+									<ul class="header-extra-info col-lg-3 col-xl-2 ps-2 ps-xl-0 ms-lg-3 d-none d-lg-block">
+										<li class="d-none d-sm-inline-flex ms-0">
+										</li>
+									</ul>
+									<div class="d-flex col-auto col-lg-2 pe-0 ps-0 ps-xl-3">
+										<ul class="header-extra-info">
+											<li class="ms-0 ms-xl-4">
+												<div class="header-row py-2">
+													<a href="#" class="header-row py-2">
+														<img src="https://img.icons8.com/material-rounded/24/null/user.png"/><p class="font-weight-semibold text-1 mb-0 d-none d-md-block"style="margin-left:5px">{{current_user.fname}} {{current_user.lname}}</p>
+
+													</a>
+												</div>
+											</li>
+										</ul>
+									</div>
+								</div>
+							</div>
+							<div class="header-column justify-content-end">
+								<div class="header-row">
+
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</header>
+     {% block content%} {% endblock %}
+    	<footer id="footer" class="footer-texts-more-lighten">
+				<div class="container align-center" >
+					<div class="row py-4 my-5">
+						<div class="col-md-6 col-lg-3 mb-5 mb-lg-0">
+							<h5 class="text-4 text-color-light mb-3">CONTACT INFO</h5>
+							<ul class="list list-unstyled">
+								<li class="pb-1 mb-2">
+									<span class="d-block font-weight-normal line-height-1 text-color-light">ADDRESS</span> 
+									1234 Street Name, City, State, USA
+								</li>
+								<li class="pb-1 mb-2">
+									<span class="d-block font-weight-normal line-height-1 text-color-light">PHONE</span>
+									<a href="tel:+1234567890">Toll Free (123) 456-7890</a>
+								</li>
+								<li class="pb-1 mb-2">
+									<span class="d-block font-weight-normal line-height-1 text-color-light">EMAIL</span>
+									<a href="mailto:mail@example.com">mail@example.com</a>
+								</li>
+								<li class="pb-1 mb-2">
+									<span class="d-block font-weight-normal line-height-1 text-color-light">WORKING DAYS/HOURS </span>
+									Mon - Sun / 9:00AM - 8:00PM
+								</li>
+							</ul>
+							<ul class="social-icons social-icons-clean-with-border social-icons-medium">
+								<li class="social-icons-instagram">
+									<a href="http://www.instagram.com/" class="no-footer-css" target="_blank" title="Instagram"><i class="fab fa-instagram"></i></a>
+								</li>
+								<li class="social-icons-twitter mx-2">
+									<a href="http://www.twitter.com/" class="no-footer-css" target="_blank" title="Twitter"><i class="fab fa-twitter"></i></a>
+								</li>
+								<li class="social-icons-facebook">
+									<a href="http://www.facebook.com/" class="no-footer-css" target="_blank" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+								</li>
+							</ul>
+						</div>
+						<div class="col-md-6 col-lg-3 mb-5 mb-lg-0">
+							<h5 class="text-4 text-color-light mb-3">CUSTOMER SERVICE</h5>
+							<ul class="list list-unstyled mb-0">
+								<li class="mb-0"><a href="#">Help & FAQs</a></li>
+								<li class="mb-0"><a href="#">Order Tracking</a></li>
+								<li class="mb-0"><a href="#">Shipping & Delivery</a></li>
+								<li class="mb-0"><a href="#">Orders History</a></li>
+								<li class="mb-0"><a href="#">Advanced Search</a></li>
+								<li class="mb-0"><a href="#">Login</a></li>
+								<li class="mb-0"><a href="about-us-1.html">Careers</a></li>
+								<li class="mb-0"><a href="#">About Us</a></li>
+								<li class="mb-0"><a href="#">Corporate Sales</a></li>
+							</ul>
+						</div>
+					</div>
+				</div>
+				<div class="container">
+					<div class="footer-copyright footer-copyright-style-2 pt-4 pb-5">
+						<div class="row align-items-center justify-content-md-between">
+							<div class="col-12 col-md-auto text-center text-md-start mb-2 mb-md-0">
+								<p class="mb-0">Porto Template © 2022. All Rights Reserved</p>
+							</div>
+							<div class="col-12 col-md-auto">
+								<div class="payment-cc justify-content-center justify-content-md-end">
+									<i class="fab fa-cc-visa"></i>
+									<i class="fab fa-cc-paypal"></i>
+									<i class="fab fa-cc-stripe"></i>
+									<i class="fab fa-cc-mastercard"></i>
+									<i class="fab fa-cc-apple-pay"></i>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</footer>
+		</div>
+		<script src="{{url_for('static', filename='js/inputmask.js')}}"></script>
+        <!-- Vendor -->
+        <script src="{{url_for('static', filename='js/jquery.min.js')}}"></script>
+        <script src="{{url_for('static', filename='js/jquery.appear.min.js')}}"></script>
+        <script src="{{url_for('static', filename='js/jquery.easing.min.js')}}"></script>
+        <script src="{{url_for('static', filename='js/jquery.cookie.min.js')}}"></script>
+        <script src="{{url_for('static', filename='js/bootstrap.bundle.min.js')}}"></script>
+        <script src="{{url_for('static', filename='js/jquery.validate.min.js')}}"></script>
+        <script src="{{url_for('static', filename='js/jquery.easypiechart.min.js')}}"></script>
+        <script src="{{url_for('static', filename='js/jquery.gmap.min.js')}}"></script>
+        <script src="{{url_for('static', filename='js/jquery.gmap.min.js')}}"></script>
+        <script src="{{url_for('static', filename='js/lazysizes.min.js')}}"></script>
+        <script src="{{url_for('static', filename='js/jquery.isotope.min.js')}}"></script>
+        <script src="{{url_for('static', filename='js/owl.carousel.min.js')}}"></script>
+        <script src="{{url_for('static', filename='js/jquery.magnific-popup.min.js')}}"></script>
+        <script src="{{url_for('static', filename='js/jquery.vide.min.js')}}"></script>
+        <script src="{{url_for('static', filename='js/vivus.min.js')}}"></script>
+        <script src="{{url_for('static', filename='js/star-rating.min.js')}}"></script>
+        <script src="{{url_for('static', filename='js/theme.min.js')}}"></script>
+        <script src="{{url_for('static', filename='js/jquery.countdown.min.js')}}"></script>
+		<!-- Theme Base, Components and Settings -->
+        <script src="{{url_for('static', filename='js/theme.js')}}"></script>
+		<!-- Current Page Vendor and Views -->
+        <script src="{{url_for('static', filename='js/view.shop.js')}}"></script>
+		<!-- Theme Custom -->
+        <script src="{{url_for('static', filename='js/custom.js')}}"></script>
+		<!-- Theme Initialization Files -->
+        <script src="{{url_for('static', filename='js/theme.init.js')}}"></script>
+	</body>
+</html>
