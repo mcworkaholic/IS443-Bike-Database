@@ -36,7 +36,7 @@ class rental_bike(db.Model):
 
     rental_id = db.Column(db.Integer, primary_key=True)
     member_id = db.Column(db.Integer, nullable=False)
-    rented_out = db.Column(db.DATE(), nullable=True)
+    rented_out = db.Column(db.DATE(), nullable=False)
 
 
 
