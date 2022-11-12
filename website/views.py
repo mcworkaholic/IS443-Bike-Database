@@ -72,7 +72,21 @@ def shop():
 @views.route("/checkout/<int:id>", methods=("GET", "POST"), strict_slashes=False)
 @login_required
 def checkout(id:int):
-    if request.method == "GET":
+    if request.method == "POST":
+                member_id = current_user.member_id
+                bike_id = request.url
+                if request.form['submit_button'] == 'Return':
+                    return_location = request.form.get("store")
+                    return_date = request.form.get("returndate")
+                    days = None
+                elif request.form['submit_button'] == 'Checkout':
+                    days = request.form.get("quantity")
+                    return_location = None
+                    return_date = None
+                return render_template("blank.html", p = str(return_location) + str(return_date) +str(days)  + str(member_id) + str(int(bike_id[-1])+1))
+
+
+    elif request.method == "GET":
         q1 = """SELECT * FROM bike INNER JOIN category ON bike.category_id = category.category_id INNER JOIN manufacturer ON bike.manufacturer_id = manufacturer.manufacturer_id ORDER BY bike_id"""
         q2 = """SELECT location_id, city, state FROM location"""
         with oracledb.connect(user=un, password=pw, dsn=sid) as connection:
@@ -85,13 +99,7 @@ def checkout(id:int):
                 location_data = cursor.fetchall()
         return render_template("checkout.html", pdata = product_data[id], user=current_user, ldata=location_data)
 
-    if request.method == "POST":
-                return_location = request.form.get("store")
-                return_date = request.form.get("returndate")
-                days = request.form.get("quantity")
-                member_id = current_user.member_id
-                bike_id = request.url
-    return render_template("blank.html", p = str(return_location) + str(return_date) + str(member_id) +str(days) + str(int(bike_id[-1])+1))
+    
 
 
 @views.route("/login/", methods=("GET", "POST"), strict_slashes=False)
