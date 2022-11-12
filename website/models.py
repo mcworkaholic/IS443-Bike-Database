@@ -29,3 +29,16 @@ class User(UserMixin, db.Model):
 
     def get_id(self):
            return (self.member_id)
+
+
+class rental_bike(db.Model):
+    __tablename__ = "rental_bike"
+
+    rental_id = db.Column(db.Integer, primary_key=True)
+    member_id = db.Column(db.Integer, nullable=False)
+    rented_out = db.Column(db.DATE(), nullable=True)
+
+
+
+
+

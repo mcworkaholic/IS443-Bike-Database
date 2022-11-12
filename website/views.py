@@ -3,10 +3,12 @@ from flask import (
     Blueprint,
     render_template,
     redirect,
+    request,
     flash,
     url_for,
     session,
 )
+import cx_Oracle
 import datetime
 import oracledb
 from datetime import timedelta
@@ -38,7 +40,14 @@ from .forms import login_form,register_form
 views = Blueprint('views', __name__)
 
 
-    
+un = 'admin_WE'
+pw = '$GoldenTeacher$'
+host = 'westonevansdb.cgrdod7jxvma.us-east-1.rds.amazonaws.com'
+port = '1521'
+sid = 'ORCL'
+sid = cx_Oracle.makedsn(host, port, sid=sid)
+
+
 
 @login_manager.user_loader
 def load_user(member_id):
@@ -48,6 +57,41 @@ def load_user(member_id):
 def session_handler():
     session.permanent = True
     views.permanent_session_lifetime = timedelta(minutes=1)
+
+@views.route("/shop", methods=("GET", "POST"), strict_slashes=False)
+@login_required
+def shop():
+    with oracledb.connect(user=un, password=pw, dsn=sid) as connection:
+        with connection.cursor() as cursor:
+            sql = """SELECT * FROM bike INNER JOIN category ON bike.category_id = category.category_id INNER JOIN manufacturer ON bike.manufacturer_id = manufacturer.manufacturer_id ORDER BY bike_id"""
+            cursor.execute(sql)
+            product_data = cursor.fetchall()
+    return render_template("shop.html", data = product_data, user=current_user)
+
+
+@views.route("/checkout/<int:id>", methods=("GET", "POST"), strict_slashes=False)
+@login_required
+def checkout(id:int):
+    if request.method == "GET":
+        q1 = """SELECT * FROM bike INNER JOIN category ON bike.category_id = category.category_id INNER JOIN manufacturer ON bike.manufacturer_id = manufacturer.manufacturer_id ORDER BY bike_id"""
+        q2 = """SELECT location_id, city, state FROM location"""
+        with oracledb.connect(user=un, password=pw, dsn=sid) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(q1)
+                product_data = cursor.fetchall()
+        with oracledb.connect(user=un, password=pw, dsn=sid) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(q2)
+                location_data = cursor.fetchall()
+        return render_template("checkout.html", pdata = product_data[id], user=current_user, ldata=location_data)
+
+    if request.method == "POST":
+                return_location = request.form.get("store")
+                return_date = request.form.get("returndate")
+                days = request.form.get("quantity")
+                member_id = current_user.member_id
+                bike_id = request.url
+    return render_template("blank.html", p = str(return_location) + str(return_date) + str(member_id) +str(days) + str(int(bike_id[-1])+1))
 
 
 @views.route("/login/", methods=("GET", "POST"), strict_slashes=False)
@@ -59,7 +103,7 @@ def login():
             user = User.query.filter_by(email=form.email.data).first()
             if check_password_hash((user.password), form.password.data):
                 login_user(user)
-                return redirect(url_for('views.dashboard'))
+                return redirect(url_for('views.shop'))
             else:
                 flash("Invalid Username or password!", "danger")
         except Exception as e:

@@ -20,7 +20,6 @@ class login_form(FlaskForm):
     password = PasswordField(validators=[ Length(min=8, max=72)])
     # Placeholder labels to enable form rendering
 
-
 class register_form(FlaskForm):
     email = StringField(validators=[Email(), Length(1, 64)])
     fname = StringField(validators=[ Length(1, 50)])
@@ -28,12 +27,7 @@ class register_form(FlaskForm):
     phone = StringField(validators=[ Length(8, 20)])
     address = StringField(validators=[ Length(1, 150)])
     password = PasswordField(validators=[ Length(8, 200)])
-    cpwd = PasswordField(
-        validators=[
-            Length(8, 72),
-            EqualTo("password", message="Passwords must match !"),
-        ]
-    )
+    cpwd = PasswordField(validators=[Length(8, 72),EqualTo("password", message="Passwords must match !"),])
 
 
     def validate_email(self, email):
