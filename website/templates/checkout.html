@@ -33,13 +33,14 @@
 								<p class="text-3-5 mb-3">{{pdata[2]}}</p>
 								<ul class="list list-unstyled text-2">
 									<li class="mb-0">AVAILABILITY: <strong class="text-color-dark">{{pdata[4].upper()}}</strong></li>
+									 {% if pdata[4] != 'in'%}
 									<li class="mt-2"><a href="#" onclick="makeVisible(); return False;"><strong class="text-color-dark" id="returning">Returning?</strong></li></a>
 								</ul>
 								<script type="text/javascript">
 								function makeVisible()
                              {document.getElementById("return").style.display="block";}
                                    </script>
-								   {% if pdata[4] != 'out'%}
+								   {% elif pdata[4] != 'out'%}
 								<form enctype="multipart/form-data" method="POST" class="cart" action="#">
 									<hr>
                                     <ul class="list list-unstyled text-2">
