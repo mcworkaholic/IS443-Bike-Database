@@ -1,5 +1,5 @@
 --IS 443/543 Fall Semester 2022
---Group O - Weston Evans and Saicharan Gattepali
+--Group O - Weston Evans 
 
 --Create a procedure similar to DROP IF EXISTS
 
@@ -91,7 +91,7 @@ manufacturer_name VARCHAR2(35) NOT NULL UNIQUE
 
 CREATE SEQUENCE manufacturer_id_seq;
 
-CREATE TRIGGER manufacturer_id_incr
+CREATE OR REPLACE TRIGGER manufacturer_id_incr
 BEFORE INSERT ON manufacturer
 FOR EACH ROW
 BEGIN
@@ -137,7 +137,7 @@ phone VARCHAR2(20) NOT NULL
 
 CREATE SEQUENCE location_id_seq;
 
-CREATE TRIGGER location_id_incr
+CREATE OR REPLACE TRIGGER location_id_incr
 BEFORE INSERT ON location
 FOR EACH ROW
 BEGIN
@@ -169,7 +169,7 @@ location_id INTEGER NOT NULL CONSTRAINT staff_FK REFERENCES location(location_id
 
 CREATE SEQUENCE staff_id_seq;
 
-CREATE TRIGGER staff_id_incr
+CREATE OR REPLACE TRIGGER staff_id_incr
 BEFORE INSERT ON staff
 FOR EACH ROW
 BEGIN
@@ -212,7 +212,7 @@ unpaid_balance NUMERIC (5,2) CONSTRAINT balance_check CHECK(unpaid_balance <= 50
 CREATE SEQUENCE member_id_seq;
 
 
-CREATE TRIGGER member_id_incr
+CREATE OR REPLACE TRIGGER member_id_incr
 BEFORE INSERT ON customer
 FOR EACH ROW
 BEGIN
@@ -233,7 +233,7 @@ category_name VARCHAR2(20) NOT NULL UNIQUE
 
 CREATE SEQUENCE category_id_seq;
 
-CREATE TRIGGER category_id_incr
+CREATE OR REPLACE TRIGGER category_id_incr
 BEFORE INSERT ON category
 FOR EACH ROW
 BEGIN
@@ -280,7 +280,7 @@ location_id INTEGER CONSTRAINT location_FK REFERENCES location(location_id) ON D
 
 CREATE SEQUENCE bike_id_seq;
 
-CREATE TRIGGER bike_id_incr
+CREATE OR REPLACE TRIGGER bike_id_incr
 BEFORE INSERT ON bike
 FOR EACH ROW
 BEGIN
@@ -319,18 +319,19 @@ rented_out DATE NOT NULL
 CREATE SEQUENCE rental_id_seq;
 CREATE SEQUENCE num_rentals_seq;
 
-CREATE TRIGGER update_bike_out
+CREATE OR REPLACE TRIGGER update_bike_out
 AFTER INSERT ON rental_bike
 FOR EACH ROW
 BEGIN
   UPDATE bike
-  SET bike.status = 'out' WHERE bike.bike_id = :NEW.bike_id;
+  SET bike.status = 'out' WHERE bike.bike_id = :NEW.bike_id AND (SELECT num_rentals FROM customer WHERE member_id = :new.member_id) != 2;
   UPDATE customer
   SET customer.num_rentals = num_rentals_seq.nextval 
   WHERE member_id = :new.member_id;
 END update_bike_out;
 /
-CREATE TRIGGER rental_id_incr
+
+CREATE OR REPLACE TRIGGER rental_id_incr
 BEFORE INSERT ON rental_bike
 FOR EACH ROW
 BEGIN
@@ -345,18 +346,18 @@ END;
 
 --TABLE Creation
 
-CREATE TABLE rental_detail (
+CREATE  TABLE rental_detail (
 detail_id INTEGER NOT NULL CONSTRAINT rental_detail_PK PRIMARY KEY,
 rental_id INTEGER NOT NULL CONSTRAINT rental_id_FK REFERENCES rental_bike(rental_id) ON DELETE CASCADE,
 exp_return DATE NOT NULL,
 act_return DATE,
 location_from INTEGER NOT NULL CONSTRAINT rented_from_FK REFERENCES location(location_id) ON DELETE CASCADE,
-location_return INTEGER CONSTRAINT returned_FK REFERENCES location(location_id) ON DELETE CASCADE,
+location_return INTEGER CONSTRAINT returned_FK REFERENCES location(location_id) ON DELETE CASCADE
 ); 
 
 CREATE SEQUENCE detail_id_seq;
 
-CREATE TRIGGER detail_id_incr
+CREATE OR REPLACE TRIGGER detail_id_incr
 BEFORE INSERT ON rental_detail
 FOR EACH ROW
 BEGIN
