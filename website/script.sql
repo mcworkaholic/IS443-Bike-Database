@@ -52,6 +52,7 @@ EXECUTE DelObject ('location_id_incr','TRIGGER');
 EXECUTE DelObject ('location','TABLE'); 
 
 EXECUTE DelObject ('member_id_seq','SEQUENCE'); 
+EXECUTE DelObject ('num_rentals_seq','SEQUENCE'); 
 EXECUTE DelObject ('member_id_incr','TRIGGER'); 
 EXECUTE DelObject ('customer','TABLE'); 
 
@@ -205,10 +206,11 @@ address VARCHAR2(200) NOT NULL,
 phone VARCHAR2(20) NOT NULL,
 registration_date DATE NOT NULL,
 num_rentals INTEGER CONSTRAINT num_rental_check CHECK(num_rentals <= 2),
-unpaid_balance NUMERIC (5,2) CONSTRAINT balance_check CHECK(unpaid_balance < 500.00)
+unpaid_balance NUMERIC (5,2) CONSTRAINT balance_check CHECK(unpaid_balance <= 500.00)
 ); 
 
 CREATE SEQUENCE member_id_seq;
+
 
 CREATE TRIGGER member_id_incr
 BEFORE INSERT ON customer
@@ -315,6 +317,7 @@ rented_out DATE NOT NULL
 ); 
 
 CREATE SEQUENCE rental_id_seq;
+CREATE SEQUENCE num_rentals_seq;
 
 CREATE TRIGGER update_bike_out
 AFTER INSERT ON rental_bike
@@ -322,10 +325,11 @@ FOR EACH ROW
 BEGIN
   UPDATE bike
   SET bike.status = 'out' WHERE bike.bike_id = :NEW.bike_id;
+  UPDATE customer
+  SET customer.num_rentals = num_rentals_seq.nextval 
+  WHERE member_id = :new.member_id;
 END update_bike_out;
 /
-
-
 CREATE TRIGGER rental_id_incr
 BEFORE INSERT ON rental_bike
 FOR EACH ROW
@@ -344,12 +348,10 @@ END;
 CREATE TABLE rental_detail (
 detail_id INTEGER NOT NULL CONSTRAINT rental_detail_PK PRIMARY KEY,
 rental_id INTEGER NOT NULL CONSTRAINT rental_id_FK REFERENCES rental_bike(rental_id) ON DELETE CASCADE,
-bike_id INTEGER NOT NULL CONSTRAINT bike_id_FK REFERENCES bike(bike_id) ON DELETE CASCADE,
-rented_from INTEGER NOT NULL CONSTRAINT rented_from_FK REFERENCES location(location_id) ON DELETE CASCADE,
 exp_return DATE NOT NULL,
 act_return DATE,
-returned_to INTEGER CONSTRAINT returned_FK REFERENCES location(location_id) ON DELETE CASCADE,
-total_fee INTEGER NOT NULL
+location_from INTEGER NOT NULL CONSTRAINT rented_from_FK REFERENCES location(location_id) ON DELETE CASCADE,
+location_return INTEGER CONSTRAINT returned_FK REFERENCES location(location_id) ON DELETE CASCADE,
 ); 
 
 CREATE SEQUENCE detail_id_seq;
@@ -373,7 +375,7 @@ END;
 
 --INSERT INTO rental_bike
 --(member_id, bike_id, rented_out)
---VALUES(1, 1, (TO_DATE('09-19-2022', 'MM-DD-YYYY')));
+--VALUES(1, 3, (TO_DATE('09-19-2022', 'MM-DD-YYYY')));
 
 --ROLLBACK;
 --
@@ -390,5 +392,6 @@ END;
 
 --SELECT * FROM bike INNER JOIN category ON bike.category_id = category.category_id INNER JOIN manufacturer ON bike.manufacturer_id = manufacturer.manufacturer_id ORDER BY bike_id;
 
-
-
+--current work
+-- INSERT INTO rental_detail (rental_id, exp_return, location_from)
+-- VALUES ((SELECT rental_id FROM rental_bike WHERE member_id = 1 AND rented_out = current_date AND bike_id = 3), (SELECT rented_out FROM rental_bike WHERE member_id = 1 AND   )
