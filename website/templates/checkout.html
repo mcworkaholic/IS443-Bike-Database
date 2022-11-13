@@ -33,24 +33,26 @@
 								<p class="text-3-5 mb-3">{{pdata[2]}}</p>
 								<ul class="list list-unstyled text-2">
 									<li class="mb-0">AVAILABILITY: <strong class="text-color-dark">{{pdata[4].upper()}}</strong></li>
+									<li class="mt-2"><a href="#" onclick="makeVisible(); return False;"><strong class="text-color-dark" id="returning">Returning?</strong></li></a>
 								</ul>
-								<form enctype="multipart/form-data" method="POST" class="cart" action="#">
-									<hr>
-                                    <ul class="list list-unstyled text-2">
-									<strong class="text-color-dark">How Many Days?</strong></li>
-									<a href="#" onclick="makeVisible(); return False;"><span class="text-color-dark ml-5" id="returning">Returning?</span></li></a>
-								    </ul>
 								<script type="text/javascript">
 								function makeVisible()
                              {document.getElementById("return").style.display="block";}
                                    </script>
+								   {% if pdata[4] != 'out'%}
+								<form enctype="multipart/form-data" method="POST" class="cart" action="#">
+									<hr>
+                                    <ul class="list list-unstyled text-2">
+									<strong class="text-color-dark">How Many Days?</strong></li>
+								    </ul>
 									<div class="quantity quantity-lg">
 										<input type="button" class="minus text-color-hover-light bg-color-hover-primary border-color-hover-primary" value="-">
 										<input type="text" class="input-text qty text" id="days" title="Qty" value="1" name="quantity" min="1" step="1">
 										<input type="button" class="plus text-color-hover-light bg-color-hover-primary border-color-hover-primary" value="+">
 									</div>
 									<button type="submit"name="submit_button" value="Checkout" class="btn btn-dark btn-modern text-uppercase bg-color-hover-primary border-color-hover-primary">Check Out</button>
-								</form> 
+								</form>
+								   {% endif %} 
 									<hr>
 									<div class="d-flex align-items-center mb-4">
 									<ul class="social-icons social-icons-medium social-icons-clean-with-border social-icons-clean-with-border-border-grey social-icons-clean-with-border-icon-dark me-3 mb-0">
