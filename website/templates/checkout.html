@@ -34,11 +34,17 @@
 								<ul class="list list-unstyled text-2">
 									<li class="mb-0">AVAILABILITY: <strong class="text-color-dark">{{pdata[4].upper()}}</strong></li>
 									 {% if pdata[4] != 'in'%}
-									<li class="mt-2"><a href="#" onclick="makeVisible(); return False;"><strong class="text-color-dark" id="returning">Returning?</strong></li></a>
+									<li class="mt-2"><a href="#" onclick="toggleVisible(); return False;"><strong class="text-color-dark" id="returning">Returning?</strong></li></a>
 								</ul>
 								<script type="text/javascript">
-								function makeVisible()
-                             {document.getElementById("return").style.display="block";}
+                             function toggleVisible() {
+  							var x = document.getElementById("return");
+  								if (x.style.display === "none") {
+    									x.style.display = "block";
+  								} else {
+    									x.style.display = "none";
+  																}
+												}
                                    </script>
 								   {% elif pdata[4] != 'out'%}
 								<form enctype="multipart/form-data" method="POST" class="cart" action="#">
