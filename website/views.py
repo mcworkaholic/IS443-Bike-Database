@@ -1,5 +1,4 @@
 from flask import (
-    Flask,
     Blueprint,
     render_template,
     redirect,
@@ -9,6 +8,8 @@ from flask import (
     session,
 )
 import cx_Oracle
+import os
+from dotenv import load_dotenv
 import datetime
 import oracledb
 from datetime import timedelta
@@ -22,12 +23,10 @@ from sqlalchemy.exc import (
 from werkzeug.routing import BuildError
 
 
-from flask_bcrypt import Bcrypt,generate_password_hash, check_password_hash
+from flask_bcrypt import check_password_hash
 
 from flask_login import (
-    UserMixin,
     login_user,
-    LoginManager,
     current_user,
     logout_user,
     login_required,
@@ -39,15 +38,31 @@ from .forms import login_form,register_form
 
 views = Blueprint('views', __name__)
 
+load_dotenv()
 
-un = 'admin_WE'
-pw = '$GoldenTeacher$'
-host = 'westonevansdb.cgrdod7jxvma.us-east-1.rds.amazonaws.com'
-port = '1521'
-sid = 'ORCL'
+un = os.getenv('ADMIN')
+pw = os.getenv('PASSWORD')
+host = os.getenv('HOST')
+port = os.getenv('PORT')
+sid = os.getenv('SID')
 sid = cx_Oracle.makedsn(host, port, sid=sid)
+pool = oracledb.create_pool(user=un, password = pw, dsn=sid, min=2, max=5, increment=1)
 
+def paymentAccepted():
+    with pool.acquire() as connection:
+        cursor = connection.cursor() 
+        statement = """UPDATE customer SET customer.unpaid_balance = :1 WHERE customer.member_id = :2"""
+        cursor.execute(statement, (0.00, current_user.member_id))
+        connection.commit()
+        return
 
+def insertRental():
+    with pool.acquire() as connection:
+        cursor = connection.cursor() 
+        statement = """INSERT INTO rental_bike (member_id, bike_id, rented_out) VALUES(:1, :2, :3)"""
+        cursor.execute(statement, (current_user.member_id, ))
+        connection.commit()
+        return
 
 @login_manager.user_loader
 def load_user(member_id):
@@ -61,11 +76,11 @@ def session_handler():
 @views.route("/shop", methods=("GET", "POST"), strict_slashes=False)
 @login_required
 def shop():
-    with oracledb.connect(user=un, password=pw, dsn=sid) as connection:
+    with pool.acquire() as connection:
         with connection.cursor() as cursor:
-            sql = """SELECT * FROM bike INNER JOIN category ON bike.category_id = category.category_id INNER JOIN manufacturer ON bike.manufacturer_id = manufacturer.manufacturer_id ORDER BY bike_id"""
-            cursor.execute(sql)
-            product_data = cursor.fetchall()
+                q1 = """SELECT * FROM bike INNER JOIN category ON bike.category_id = category.category_id INNER JOIN manufacturer ON bike.manufacturer_id = manufacturer.manufacturer_id ORDER BY bike_id"""
+                cursor.execute(q1)
+                product_data = cursor.fetchall()
     return render_template("shop.html", data = product_data, user=current_user)
 
 
@@ -81,22 +96,29 @@ def checkout(id:int):
                     days = None
                 elif request.form['submit_button'] == 'Checkout':
                     days = request.form.get("quantity")
+                    with pool.acquire() as connection:
+                        cursor = connection.cursor() 
+                        insert_bike = """INSERT INTO rental_bike (member_id, bike_id, rented_out) VALUES(:1, :2, :3)"""
+                        insert_detail = """"""
+                        cursor.execute(insert_bike, (current_user.member_id, int(bike_id[-1])+1, datetime.datetime.now()))
+                        connection.commit()
                     return_location = None
                     return_date = None
-                return render_template("blank.html", p = str(return_location) + str(return_date) +str(days)  + str(member_id) + str(int(bike_id[-1])+1))
+                if days != None:
+                    return render_template("blank.html", p = "days: " + str(days) + " member_id: " + str(member_id) + " bike_id: " + str(int(bike_id[-1])+1))
+                else:
+                    return render_template("blank.html", p = "return_date: " + str(return_date) + " return_location: " + str(return_location)+ " member_id: " + str(member_id)+ " bike_id: "  + str(int(bike_id[-1])+1))
 
 
     elif request.method == "GET":
         q1 = """SELECT * FROM bike INNER JOIN category ON bike.category_id = category.category_id INNER JOIN manufacturer ON bike.manufacturer_id = manufacturer.manufacturer_id ORDER BY bike_id"""
         q2 = """SELECT location_id, city, state FROM location"""
-        with oracledb.connect(user=un, password=pw, dsn=sid) as connection:
+        with pool.acquire() as connection:
             with connection.cursor() as cursor:
-                cursor.execute(q1)
-                product_data = cursor.fetchall()
-        with oracledb.connect(user=un, password=pw, dsn=sid) as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(q2)
-                location_data = cursor.fetchall()
+                    cursor.execute(q1)
+                    product_data = cursor.fetchall()
+                    cursor.execute(q2)
+                    location_data = cursor.fetchall()
         return render_template("checkout.html", pdata = product_data[id], user=current_user, ldata=location_data)
 
     
