@@ -367,32 +367,35 @@ BEGIN
 END; 
 /
 
-
---INSERT INTO manufacturer (m_name)
---VALUES ('next');
---
---INSERT INTO customer (fname, lname, address, phone)
---VALUES('', '', '', '');
+COMMIT;
 
 --INSERT INTO rental_bike
 --(member_id, bike_id, rented_out)
 --VALUES(1, 3, (TO_DATE('09-19-2022', 'MM-DD-YYYY')));
-
 --ROLLBACK;
---
---SELECT * FROM manufacturer;
---SELECT * FROM customer;
---
---
---DELETE FROM customer
---WHERE member_id = 1;
---
---DELETE FROM manufacturer
---WHERE m_code = 1 or m_code = 3 or m_code = 4;
-
+--WORKING UPDATE
+--UPDATE  customer SET customer.unpaid_balance = (SELECT unpaid_balance FROM customer WHERE customer.member_id = 1) + (80.00 * 3) WHERE customer.member_id = 1; 
 
 --SELECT * FROM bike INNER JOIN category ON bike.category_id = category.category_id INNER JOIN manufacturer ON bike.manufacturer_id = manufacturer.manufacturer_id ORDER BY bike_id;
 
---current work
 -- INSERT INTO rental_detail (rental_id, exp_return, location_from)
--- VALUES ((SELECT rental_id FROM rental_bike WHERE member_id = 1 AND rented_out = current_date AND bike_id = 3), (SELECT rented_out FROM rental_bike WHERE member_id = 1 AND   )
+
+-- VALUES ((SELECT rental_bike.rental_id FROM rental_bike WHERE rental_bike.member_id = 1 AND rental_bike.rented_out = TO_DATE('13-NOV-22') AND rental_bike.bike_id = 4), ((SELECT rented_out FROM rental_bike WHERE rental_bike.member_id = 1 AND rental_bike.bike_id = 4 AND rented_out = TO_DATE('13-NOV-22'))+7), (SELECT bike.location_id FROM bike WHERE bike.bike_id = 4));
+
+--SELECT daily_fee FROM bike;
+
+
+--working date selection
+--SELECT TO_DATE('11-13-2022', 'MM-DD-YYYY') FROM dual;
+
+-- "rented_out" not working
+--SELECT rental_id 
+--FROM rental_bike
+--WHERE rental_bike.member_id = 1 AND bike_id = 1 AND rented_out = DATE(14-NOV-22);
+
+--SELECT rented_out + 7 FROM rental_bike WHERE rental_bike.member_id = 1 AND rental_bike.bike_id = :3 AND TRUNC(rented_out) = TO_DATE('14-NOV-22', 'dd-MON-yy')
+
+--UPDATE customer SET customer.num_rentals = ((SELECT num_rentals FROM customer WHERE customer.member_id =1) -1);
+
+--SELECT rented_out + 7 FROM rental_bike WHERE rental_bike.member_id = 1 AND rental_bike.bike_id = 1 AND TRUNC(rented_out) = TO_DATE('14-NOV-22', 'dd-MON-yy');
+--SELECT num_rentals, unpaid_balance FROM customer WHERE customer.member_id=1;
