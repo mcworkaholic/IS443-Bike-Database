@@ -1,17 +1,11 @@
 from wtforms import (
     StringField,
     PasswordField,
-    BooleanField,
-    IntegerField,
-    DateField,
-    TextAreaField,
 )
 
 from flask_wtf import FlaskForm
-from wtforms.validators import Length, EqualTo, Email, Regexp ,Optional
-import email_validator
-from flask_login import current_user
-from wtforms import ValidationError,validators
+from wtforms.validators import Length, EqualTo, Email
+from wtforms import ValidationError
 from .models import User
 
 
