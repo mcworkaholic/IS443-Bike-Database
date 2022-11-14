@@ -1,40 +1,22 @@
-from flask import (
-    Blueprint,
-    render_template,
-    redirect,
-    request,
-    flash,
-    url_for,
-    session,
-)
-import cx_Oracle
-import os
-from dotenv import load_dotenv
 import datetime
-import oracledb
+import os
 from datetime import timedelta
-from sqlalchemy.exc import (
-    IntegrityError,
-    DataError,
-    DatabaseError,
-    InterfaceError,
-    InvalidRequestError,
-)
+
+import cx_Oracle
+import oracledb
+from dotenv import load_dotenv
+from flask import (Blueprint, flash, redirect, render_template, request,
+                   session, url_for)
+from flask_bcrypt import check_password_hash
+from flask_login import current_user, login_required, login_user, logout_user
+from oracledb import exceptions
+from sqlalchemy.exc import (DatabaseError, DataError, IntegrityError,
+                            InterfaceError, InvalidRequestError)
 from werkzeug.routing import BuildError
 
-
-from flask_bcrypt import check_password_hash
-
-from flask_login import (
-    login_user,
-    current_user,
-    logout_user,
-    login_required,
-)
-
-from . import db,login_manager,bcrypt
+from . import bcrypt, db, login_manager
+from .forms import login_form, register_form
 from .models import User
-from .forms import login_form,register_form
 
 views = Blueprint('views', __name__)
 
@@ -87,27 +69,57 @@ def shop():
 @views.route("/checkout/<int:id>", methods=("GET", "POST"), strict_slashes=False)
 @login_required
 def checkout(id:int):
+    with pool.acquire() as connection:
+        with connection.cursor() as cursor:
+            customer_data = cursor.execute("""SELECT num_rentals, unpaid_balance FROM customer WHERE customer.member_id=:member_id""", member_id = current_user.member_id).fetchall()
     if request.method == "POST":
+                months = { '1': 'JAN', '2': 'FEB', '3': 'MAR', '4': 'APR', '5': 'MAY', '6': 'JUN', '7': 'JUL','8': 'AUG','9': 'SEP','10': 'OCT','11': 'NOV', '12': 'DEC' }
                 member_id = current_user.member_id
                 bike_id = request.url
                 if request.form['submit_button'] == 'Return':
-                    return_location = request.form.get("store")
-                    return_date = request.form.get("returndate")
+                    return_location = request.form.get("store") # from select field
+                    date_str = request.form.get("returndate") # As DD-MM-YY format
+                    split_date = date_str.split('-')
+                    new_date_str = [split_date[0], months[f"{split_date[1]}"], split_date[2]]
+                    date_object = datetime.datetime.strptime('-'.join(new_date_str), '%d-%b-%y').date()
                     days = None
+                    with pool.acquire() as connection:
+                        cursor = connection.cursor()
+                        update_cust_rentals = """UPDATE customer SET customer.num_rentals = ((SELECT num_rentals FROM customer WHERE customer.member_id =:1) -1)"""
+                        update_bike_status = """UPDATE bike SET bike.status = 'in' WHERE bike.bike_id = :1"""
+                        update_bike_location = """UPDATE bike SET bike.location_id = :1 WHERE bike.bike_id = :2"""
+                        update_balance = """UPDATE customer SET unpaid_balance = (SELECT unpaid_balance FROM customer WHERE customer.member_id = :1) +""" #work on
+                        cursor.execute(update_bike_location, [return_location, int(bike_id[-1])+1])
+                        cursor.execute(update_cust_rentals, [current_user.member_id])
+                        cursor.execute(update_bike_status, [int(bike_id[-1])+1])
+                        connection.commit()
                 elif request.form['submit_button'] == 'Checkout':
                     days = request.form.get("quantity")
                     with pool.acquire() as connection:
                         cursor = connection.cursor() 
-                        insert_bike = """INSERT INTO rental_bike (member_id, bike_id, rented_out) VALUES(:1, :2, :3)"""
-                        insert_detail = """"""
-                        cursor.execute(insert_bike, (current_user.member_id, int(bike_id[-1])+1, datetime.datetime.now()))
-                        connection.commit()
-                    return_location = None
-                    return_date = None
+                        select_data = cursor.execute("""SELECT daily_fee FROM bike WHERE bike_id = :bike""",bike=int(bike_id[-1])+1)
+                        daily_fee = select_data.fetchall()
+                        # exp_return = """SELECT rented_out + :1 FROM rental_bike WHERE rental_bike.member_id = :2 AND rental_bike.bike_id = :3 AND TRUNC(rented_out) = TO_DATE('14-NOV-22', 'dd-MON-yy')""" #work on
+                        insert_rental = """INSERT INTO rental_bike (member_id, bike_id, rented_out) VALUES(:1, :2, :3)"""
+                        insert_rental_detail = """INSERT INTO rental_detail (rental_id, exp_return, location_from) VALUES(:1, :2, :3)"""
+                        update_balance = """UPDATE customer SET customer.unpaid_balance = (SELECT unpaid_balance FROM customer WHERE customer.member_id = :1) + (:2 * :3) WHERE customer.member_id = :4"""
+                        try:
+                            cursor.execute(update_balance, [current_user.member_id, (daily_fee[0][0]),  days, current_user.member_id])
+                            cursor.execute(insert_rental, [current_user.member_id, int(bike_id[-1])+1, datetime.datetime.now()])
+                            connection.commit()
+                        except oracledb.IntegrityError:
+                            db.session.rollback()
+                            if customer_data[0][0] == 2:
+                                flash(f"Maximum number of rentals reached.", "warning")
+                                return redirect(url_for('views.checkout', id=int(bike_id[-1])))
+                            elif  customer_data[0][0] !=2:
+                                flash(f"Maximum account balance reached.", "warning")
+                                return redirect(url_for('views.checkout', id=int(bike_id[-1])))
+                       
                 if days != None:
-                    return render_template("blank.html", p = "days: " + str(days) + " member_id: " + str(member_id) + " bike_id: " + str(int(bike_id[-1])+1))
+                    return render_template("blank.html", p = "num_rentals: " + str(customer_data) + "daily_fee: " + str(daily_fee[0][0]) + "days: " + str(days) + " member_id: " + str(member_id) + " bike_id: " + str(int(bike_id[-1])+1))
                 else:
-                    return render_template("blank.html", p = "return_date: " + str(return_date) + " return_location: " + str(return_location)+ " member_id: " + str(member_id)+ " bike_id: "  + str(int(bike_id[-1])+1))
+                    return render_template("blank.html", p = "return_date: " + str(date_str) + " return_location: " + str(return_location)+ " member_id: " + str(member_id)+ " bike_id: "  + str(int(bike_id[-1])+1))
 
 
     elif request.method == "GET":
@@ -175,7 +187,7 @@ def register():
     
             db.session.add(newuser)
             db.session.commit()
-            flash("Account Successfully created", "success")
+            flash("Account Creation Successful.", "success")
             return redirect(url_for("views.login"))
 
         except InvalidRequestError:
