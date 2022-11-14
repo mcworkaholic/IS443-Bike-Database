@@ -33,6 +33,16 @@
 								<p class="text-3-5 mb-3">{{pdata[2]}}</p>
 								<ul class="list list-unstyled text-2">
 									<li class="mb-0">AVAILABILITY: <strong class="text-color-dark">{{pdata[4].upper()}}</strong></li>
+									{% with messages = get_flashed_messages(with_categories=true) %}
+                				<!-- Categories: success (green), info (blue), warning (yellow), danger (red) -->
+                					 {% if messages %}
+                					{% for category, message in messages %}
+        				<div class="alert alert-{{category}} alert-dismissible fade show mt-3" role="alert">
+                   								 {{ message }}
+                									</div>
+                					{% endfor %}
+                					{% endif %}
+                					{% endwith %}
 									 {% if pdata[4] != 'in'%}
 									<li class="mt-2"><a href="#" onclick="toggleVisible(); return False;"><strong class="text-color-dark" id="returning">Returning?</strong></li></a>
 								</ul>
@@ -115,7 +125,7 @@
 													<div class="row">
 														<div class="form-group col">
 															<label class="form-label mb-1 text-2">Date of Return</label>
-															<input type="text" data-format="**-**-****" data-mask="MM-DD-YYYY" value="" maxlength="12" class="form-control text-3 h-auto py-2" name="returndate" required>
+															<input type="text" data-format="**-**-**" data-mask="DD-MM-YY" value="" maxlength="12" class="form-control text-3 h-auto py-2" name="returndate" required>
 														</div>
 													</div>
 												<div class="row">
