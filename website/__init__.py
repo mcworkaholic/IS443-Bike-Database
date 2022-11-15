@@ -1,5 +1,4 @@
 from flask import Flask
-from sqlalchemy import create_engine
 import pandas as pd
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
