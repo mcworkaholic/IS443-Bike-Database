@@ -3,8 +3,10 @@ import cx_Oracle
 import oracledb
 import pandas as pd
 import datetime
+from datetime import timedelta, date
 from dotenv import load_dotenv
 import os 
+import time
 
 cx_Oracle.init_oracle_client(lib_dir="C:\\Users\\Weston\\Desktop\\instantclient-basic-windows.x64-21.7.0.0.0dbru\\instantclient_21_7")
 pd.set_option('display.width', 1000)
@@ -19,7 +21,7 @@ port = os.getenv('PORT')
 sid = os.getenv('SID')
 sid = cx_Oracle.makedsn(host, port, sid=sid)
 
-pool = cx_Oracle.SessionPool(user=un, password=pw, dsn=sid, min=2, max=8, increment=1, encoding="UTF-8")
+pool = oracledb.create_pool(user=un, password = pw, dsn=sid, min=2, max=5, increment=1)
 
 def select_products_detail():
     with pool.acquire() as connection:
@@ -37,12 +39,24 @@ def select_location_detail():
             result = cursor.fetchall()
             return result
 
-def getDate():
-    date_str = '09-19-2018'
+def selectFee():
+    with pool.acquire() as connection:
+        cursor = connection.cursor() 
+        sql =  cursor.execute("""SELECT daily_fee FROM bike""")
+        for result in sql:
+            result = sql.fetchall()
+            return result
 
-    date_object = datetime.datetime.strptime(date_str, '%m-%d-%Y').date
-    print(type(date_object))
-    print(date_object)  # printed in default formatting
+def getDate():
+    months = { '1': 'JAN', '2': 'FEB', '3': 'MAR', '4': 'APR', '5': 'MAY', '6': 'JUN', '7': 'JUL','8': 'AUG','9': 'SEP','10': 'OCT','11': 'NOV', '12': 'DEC' }
+    date_obj = (datetime.datetime.date(datetime.datetime.now()) + timedelta(days=3)).strftime('%d-%b-%Y').upper() # form quantity 
+    rpt_time = time.strftime('%d-%b-%Y')
+    today = date.today().strftime('%d-%b-%Y') 
+    print(type(date_obj))
+    print(date_obj)
+    # print(rpt_time)
+    
+   
 
 def paymentAccepted():
     with pool.acquire() as connection:
@@ -57,6 +71,4 @@ def insertDetail():
         cursor.execute(statement, (1, ))
         return
 
-print(select_location_detail())
-print(select_products_detail()) 
-print(paymentAccepted()) 
+getDate()
