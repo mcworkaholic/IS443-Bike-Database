@@ -1,7 +1,6 @@
 import datetime
 import os
-from datetime import timedelta
-
+from datetime import timedelta, date
 import cx_Oracle
 import oracledb
 from dotenv import load_dotenv
@@ -9,7 +8,6 @@ from flask import (Blueprint, flash, redirect, render_template, request,
                    session, url_for)
 from flask_bcrypt import check_password_hash
 from flask_login import current_user, login_required, login_user, logout_user
-from oracledb import exceptions
 from sqlalchemy.exc import (DatabaseError, DataError, IntegrityError,
                             InterfaceError, InvalidRequestError)
 from werkzeug.routing import BuildError
@@ -30,21 +28,6 @@ sid = os.getenv('SID')
 sid = cx_Oracle.makedsn(host, port, sid=sid)
 pool = oracledb.create_pool(user=un, password = pw, dsn=sid, min=2, max=5, increment=1)
 
-def paymentAccepted():
-    with pool.acquire() as connection:
-        cursor = connection.cursor() 
-        statement = """UPDATE customer SET customer.unpaid_balance = :1 WHERE customer.member_id = :2"""
-        cursor.execute(statement, (0.00, current_user.member_id))
-        connection.commit()
-        return
-
-def insertRental():
-    with pool.acquire() as connection:
-        cursor = connection.cursor() 
-        statement = """INSERT INTO rental_bike (member_id, bike_id, rented_out) VALUES(:1, :2, :3)"""
-        cursor.execute(statement, (current_user.member_id, ))
-        connection.commit()
-        return
 
 @login_manager.user_loader
 def load_user(member_id):
@@ -78,10 +61,11 @@ def checkout(id:int):
                 bike_id = request.url
                 if request.form['submit_button'] == 'Return':
                     return_location = request.form.get("store") # from select field
-                    date_str = request.form.get("returndate") # As DD-MM-YY format
-                    split_date = date_str.split('-')
+                    return_date = request.form.get("returndate") # As DD-MM-YYYY format
+                    split_date = return_date.split('-')
                     new_date_str = [split_date[0], months[f"{split_date[1]}"], split_date[2]]
-                    date_object = datetime.datetime.strptime('-'.join(new_date_str), '%d-%b-%y').date()
+                    oracle_date = '-'.join(new_date_str)
+                    # date_object = datetime.datetime.strptime('-'.join(new_date_str), '%d-%b-%Y').date()
                     days = None
                     with pool.acquire() as connection:
                         cursor = connection.cursor()
@@ -89,6 +73,11 @@ def checkout(id:int):
                         update_bike_status = """UPDATE bike SET bike.status = 'in' WHERE bike.bike_id = :1"""
                         update_bike_location = """UPDATE bike SET bike.location_id = :1 WHERE bike.bike_id = :2"""
                         update_balance = """UPDATE customer SET unpaid_balance = (SELECT unpaid_balance FROM customer WHERE customer.member_id = :1) +""" #work on
+                        update_act_return = """UPDATE rental_detail SET act_return = :1 WHERE exp_return = (SELECT TRUNC(rented_out) FROM rental_bike WHERE bike_id = :2 AND member_id = :3) + (SELECT days_out FROM rental_bike WHERE bike_id = :4 AND member_id = :5)"""
+                        update_location_return = """UPDATE rental_detail SET location_return = :1 WHERE exp_return = (SELECT TRUNC(rented_out) FROM rental_bike WHERE bike_id = :2 AND member_id =:3) + (SELECT days_out FROM rental_bike WHERE bike_id = :4 AND member_id = :5)"""
+                        cursor.execute("ALTER SESSION SET NLS_DATE_FORMAT = 'DD-MON-YYYY HH24:MI:SS'")
+                        cursor.execute(update_location_return,[return_location, int(bike_id[-1])+1, current_user.member_id, int(bike_id[-1])+1, current_user.member_id])
+                        cursor.execute(update_act_return,[oracle_date, int(bike_id[-1])+1, current_user.member_id, int(bike_id[-1])+1, current_user.member_id])
                         cursor.execute(update_bike_location, [return_location, int(bike_id[-1])+1])
                         cursor.execute(update_cust_rentals, [current_user.member_id])
                         cursor.execute(update_bike_status, [int(bike_id[-1])+1])
@@ -97,15 +86,19 @@ def checkout(id:int):
                     days = request.form.get("quantity")
                     with pool.acquire() as connection:
                         cursor = connection.cursor() 
-                        select_data = cursor.execute("""SELECT daily_fee FROM bike WHERE bike_id = :bike""",bike=int(bike_id[-1])+1)
-                        daily_fee = select_data.fetchall()
-                        # exp_return = """SELECT rented_out + :1 FROM rental_bike WHERE rental_bike.member_id = :2 AND rental_bike.bike_id = :3 AND TRUNC(rented_out) = TO_DATE('14-NOV-22', 'dd-MON-yy')""" #work on
-                        insert_rental = """INSERT INTO rental_bike (member_id, bike_id, rented_out) VALUES(:1, :2, :3)"""
+                        cursor.execute("ALTER SESSION SET NLS_DATE_FORMAT = 'DD-MON-YYYY HH24:MI:SS'")
+                        location_from = cursor.execute("""SELECT location_id FROM bike WHERE bike.bike_id =:bike""",bike=int(bike_id[-1])+1).fetchall()
+                        daily_fee = cursor.execute("""SELECT daily_fee FROM bike WHERE bike_id = :bike""",bike=int(bike_id[-1])+1).fetchall()
+                        exp_return = (datetime.datetime.date(datetime.datetime.now()) + timedelta(days=int(days))).strftime('%d-%b-%Y').upper() ## attempt to explain
+                        insert_rental = """INSERT INTO rental_bike (member_id, bike_id, rented_out, days_out) VALUES(:1, :2, :3, :4)"""
                         insert_rental_detail = """INSERT INTO rental_detail (rental_id, exp_return, location_from) VALUES(:1, :2, :3)"""
                         update_balance = """UPDATE customer SET customer.unpaid_balance = (SELECT unpaid_balance FROM customer WHERE customer.member_id = :1) + (:2 * :3) WHERE customer.member_id = :4"""
+
                         try:
                             cursor.execute(update_balance, [current_user.member_id, (daily_fee[0][0]),  days, current_user.member_id])
-                            cursor.execute(insert_rental, [current_user.member_id, int(bike_id[-1])+1, datetime.datetime.now()])
+                            cursor.execute(insert_rental, [current_user.member_id, int(bike_id[-1])+1, datetime.datetime.now(), days])
+                            rental_id = cursor.execute("""SELECT rental_id FROM rental_bike WHERE member_id = :member_id AND bike_id=:bike_id""", member_id = current_user.member_id, bike_id=int(bike_id[-1])+1).fetchall()
+                            cursor.execute(insert_rental_detail, [rental_id[0][0], exp_return, location_from[0][0]])
                             connection.commit()
                         except oracledb.IntegrityError:
                             db.session.rollback()
@@ -117,9 +110,9 @@ def checkout(id:int):
                                 return redirect(url_for('views.checkout', id=int(bike_id[-1])))
                        
                 if days != None:
-                    return render_template("blank.html", p = "num_rentals: " + str(customer_data) + "daily_fee: " + str(daily_fee[0][0]) + "days: " + str(days) + " member_id: " + str(member_id) + " bike_id: " + str(int(bike_id[-1])+1))
+                    return render_template("blank.html", p = " location_from: " + str(location_from[0][0]) +" rental_id: " + str(rental_id[0][0]) +" exp_return: " + str(exp_return) + " num_rentals: " + str(customer_data[0][0]) + " daily_fee: " + str(daily_fee[0][0]) + " days: " + str(days) + " member_id: " + str(member_id) + " bike_id: " + str(int(bike_id[-1])+1))
                 else:
-                    return render_template("blank.html", p = "return_date: " + str(date_str) + " return_location: " + str(return_location)+ " member_id: " + str(member_id)+ " bike_id: "  + str(int(bike_id[-1])+1))
+                    return render_template("blank.html", p = "return_date: " + str(oracle_date) + " return_location: " + str(return_location)+ " member_id: " + str(member_id)+ " bike_id: "  + str(int(bike_id[-1])+1))
 
 
     elif request.method == "GET":
@@ -181,7 +174,6 @@ def register():
                 address=address,
                 unpaid_balance = 0,
                 num_rentals = 0,
-                registration_date = datetime.datetime.now(),
                 password=bcrypt.generate_password_hash(password).decode('utf8'),
             )
     
