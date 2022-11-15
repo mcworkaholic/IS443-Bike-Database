@@ -318,6 +318,7 @@ CREATE TABLE rental_bike (
 rental_id INTEGER NOT NULL CONSTRAINT bike_rental_PK PRIMARY KEY,
 member_id INTEGER NOT NULL CONSTRAINT member_id_FK REFERENCES customer(member_id) ON DELETE CASCADE,
 bike_id INTEGER NOT NULL CONSTRAINT bike_fk REFERENCES bike(bike_id) ON DELETE CASCADE,
+days_out INTEGER NOT NULL,
 rented_out DATE NOT NULL
 ); 
 
@@ -399,5 +400,19 @@ COMMIT;
 
 --UPDATE customer SET customer.num_rentals = ((SELECT num_rentals FROM customer WHERE customer.member_id =1) -1);
 
---SELECT rented_out + 7 FROM rental_bike WHERE rental_bike.member_id = 1 AND rental_bike.bike_id = 1 AND TRUNC(rented_out) = TO_DATE('14-NOV-22', 'dd-MON-yy');
+--SELECT rented_out + 7 FROM rental_bike WHERE rental_bike.member_id = 1 AND rental_bike.bike_id = 2 AND trunc(rented_out) = '15-NOV-2022';
 --SELECT num_rentals, unpaid_balance FROM customer WHERE customer.member_id=1;
+
+--WORKING join
+--SELECT * FROM rental_detail
+--INNER JOIN rental_bike
+--ON rental_detail.rental_id = rental_bike.rental_id;
+
+
+---WORKING rental_detail update for act_return
+--UPDATE rental_detail SET act_return = TO_DATE('18-NOV-2022', 'dd-MON-YYYY') WHERE exp_return = (SELECT TRUNC(rented_out) FROM rental_bike WHERE bike_id = 2 AND member_id = 1) + (SELECT days_out FROM rental_bike WHERE bike_id = 2 AND member_id = 1);
+--
+---WORKING rental_detail update for location_return
+--UPDATE rental_detail SET location_return = 3 WHERE exp_return = (SELECT TRUNC(rented_out) FROM rental_bike WHERE bike_id = 2 AND member_id =1) + (SELECT days_out FROM rental_bike WHERE bike_id = 2 AND member_id = 1);
+
+--SELECT ((act_return - exp_return)*20) FROM rental_detail WHERE rental_id = (SELECT rental_id FROM rental_bike WHERE bike_id = 1 AND member_id =1 AND days_out = 1 AND rented_out = (SELECT exp_return -1 FROM rental_detail);
