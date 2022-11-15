@@ -3,6 +3,7 @@
 
 --Create a procedure similar to DROP IF EXISTS
 
+
 CREATE OR REPLACE PROCEDURE DelObject(ObjName varchar2,ObjType varchar2)
 IS
  v_counter number := 0;   
@@ -81,6 +82,10 @@ EXECUTE DelObject ('manufacturer','TABLE');
 EXECUTE DelObject ('staff_id_seq','SEQUENCE'); 
 EXECUTE DelObject ('staff_id_incr','TRIGGER'); 
 EXECUTE DelObject ('staff','TABLE');
+
+--Setting time zone and date format
+ALTER SESSION SET NLS_DATE_FORMAT = 'DD-MON-YYYY';
+ALTER SESSION SET TIME_ZONE='America/Chicago';
 
 --TABLE Creation
 
@@ -219,7 +224,7 @@ BEGIN
     SELECT member_id_seq.nextval
     INTO :new.member_id
     FROM DUAL;
-    SELECT SYSDATE 
+    SELECT CURRENT_DATE
     INTO :new.registration_date
     FROM DUAL;
 END; 
@@ -384,14 +389,11 @@ COMMIT;
 
 --SELECT daily_fee FROM bike;
 
+--INSERT INTO rental_bike VALUES(1,1,1, TO_DATE('17-NOV-22', 'DD-MON-YYYY')); 
 
 --working date selection
 --SELECT TO_DATE('11-13-2022', 'MM-DD-YYYY') FROM dual;
 
--- "rented_out" not working
---SELECT rental_id 
---FROM rental_bike
---WHERE rental_bike.member_id = 1 AND bike_id = 1 AND rented_out = DATE(14-NOV-22);
 
 --SELECT rented_out + 7 FROM rental_bike WHERE rental_bike.member_id = 1 AND rental_bike.bike_id = :3 AND TRUNC(rented_out) = TO_DATE('14-NOV-22', 'dd-MON-yy')
 
