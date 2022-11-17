@@ -445,38 +445,39 @@ COMMIT;
 --   END;
 --   /
 
--- CREATE OR REPLACE TRIGGER New_Trigger
--- AFTER INSERT ON rental_bike
--- FOR EACH ROW
--- DECLARE
---     expected_return := rental_bike.rented_out%TYPE
+CREATE OR REPLACE TRIGGER Rental__Insert_Trigger
+AFTER INSERT ON rental_bike
+FOR EACH ROW
+DECLARE
+    expected_return := rental_bike.rented_out%TYPE
 
---     CURSOR RentalCursor IS
---     SELECT rental_id, member_id, bike_id, days_out, rented_out
---     FROM rental_bike
---     WHERE rental_bike.member_id = new.member_id;
+    CURSOR RentalCursor IS
+    SELECT rental_id, member_id, bike_id, days_out, rented_out
+    FROM rental_bike
+    WHERE rental_bike.member_id = :new.member_id;
 
---     CURSOR BikeCursor IS
---     SELECT bike_id, daily_fee, bike_id, location_id
---     FROM bike
---     WHERE bike.bike_id = new.bike_id;
+    RentalRow RentalCursor%ROWTYPE;
+
+    CURSOR BikeCursor IS
+    SELECT bike_id, daily_fee, bike_id, location_id
+    FROM bike
+    WHERE bike.bike_id = :new.bike_id;
     
---     RentalRow RentalCursor%ROWTYPE;
---     BikeRow BikeCursor%ROWTYPE;
--- BEGIN
---     SELECT TRUNC(rented_out) + days_out 
---     INTO expected_return
---     FROM rental_bike
---     WHERE member_id = RentalRow.member_id;
+    BikeRow BikeCursor%ROWTYPE;
 
---     INSERT INTO rental_detail VALUES(rental_id, exp_return, location_from)
+BEGIN
+    SELECT TRUNC(rented_out) + days_out 
+    INTO expected_return
+    FROM rental_bike
+    WHERE rental_bike.member_id = RentalRow.member_id;
 
+    INSERT INTO rental_detail VALUES(rental_id, exp_return, location_from)
+    (RentalRow.rental_id, expected_return, (SELECT location_id FROM bike WHERE bike.bike_id = RentalRow.bike_id)); 
 
+    UPDATE Customer
+    SET num_rentals = (SELECT customer.num_rentals FROM customer WHERE customer.member_id = RentalRow.member_id) + 1;
 
---     UPDATE Customer
---     SET num_rentals = SELECT num_rentals + 1 FROM customer 
---     WHERE member_id = RentalRow.member_id;
-    
---     END IF;
--- END; 
--- /
+    CLOSE RentalCursor;
+    CLOSE BikeCursor;
+END; 
+/
