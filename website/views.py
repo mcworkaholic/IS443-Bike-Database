@@ -112,9 +112,9 @@ def checkout(id:int):
                 if days != None:
                     return render_template("blank.html", p = " location_from: " + str(location_from[0][0]) +" rental_id: " + str(rental_id[0][0]) +" exp_return: " + str(exp_return) + " num_rentals: " + str(customer_data[0][0]) + " daily_fee: " + str(daily_fee[0][0]) + " days: " + str(days) + " member_id: " + str(member_id) + " bike_id: " + str(int(bike_id[-1])+1))
                 else:
-                    return render_template("blank.html", p = "return_date: " + str(oracle_date) + " return_location: " + str(return_location)+ " member_id: " + str(member_id)+ " bike_id: "  + str(int(bike_id[-1])+1))
+                    return render_template("blank.html", p = str(customer_data[0])+ "  " +  "return_date: " + str(oracle_date) + " return_location: " + str(return_location)+ " member_id: " + str(member_id)+ " bike_id: "  + str(int(bike_id[-1])+1))
 
-
+     # No Work needed here 
     elif request.method == "GET":
         q1 = """SELECT * FROM bike INNER JOIN category ON bike.category_id = category.category_id INNER JOIN manufacturer ON bike.manufacturer_id = manufacturer.manufacturer_id ORDER BY bike_id"""
         q2 = """SELECT location_id, city, state FROM location"""
@@ -187,7 +187,7 @@ def register():
             flash(f"Something went wrong!", "danger")
         except IntegrityError:
             db.session.rollback()
-            flash(f"User already exists!.", "warning")
+            flash(f"User already exists!", "warning")
         except DataError:
             db.session.rollback()
             flash(f"Invalid Entry", "warning")
