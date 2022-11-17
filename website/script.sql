@@ -445,21 +445,22 @@ COMMIT;
 --   END;
 --   /
 
-CREATE OR REPLACE TRIGGER Rental__Insert_Trigger
+CREATE OR REPLACE TRIGGER Rental_Insert_Trigger
 AFTER INSERT ON rental_bike
 FOR EACH ROW
 DECLARE
-    expected_return := rental_bike.rented_out%TYPE
+    expected_return rental_bike.rented_out%TYPE;
+    
 
     CURSOR RentalCursor IS
-    SELECT rental_id, member_id, bike_id, days_out, rented_out
+    SELECT *
     FROM rental_bike
     WHERE rental_bike.member_id = :new.member_id;
 
     RentalRow RentalCursor%ROWTYPE;
 
     CURSOR BikeCursor IS
-    SELECT bike_id, daily_fee, bike_id, location_id
+    SELECT *
     FROM bike
     WHERE bike.bike_id = :new.bike_id;
     
@@ -471,8 +472,9 @@ BEGIN
     FROM rental_bike
     WHERE rental_bike.member_id = RentalRow.member_id;
 
-    INSERT INTO rental_detail VALUES(rental_id, exp_return, location_from)
-    (RentalRow.rental_id, expected_return, (SELECT location_id FROM bike WHERE bike.bike_id = RentalRow.bike_id)); 
+    INSERT INTO rental_detail (rental_id, exp_return, location_from) VALUES (RentalRow.rental_id, expected_return, (SELECT bike.location_id FROM bike WHERE bike.bike_id = RentalRow.bike_id));
+    
+    
 
     UPDATE Customer
     SET num_rentals = (SELECT customer.num_rentals FROM customer WHERE customer.member_id = RentalRow.member_id) + 1;
