@@ -63,6 +63,7 @@ EXECUTE DelObject ('category','TABLE');
 
 EXECUTE DelObject ('rental_id_seq','SEQUENCE'); 
 EXECUTE DelObject ('rental_id_incr','TRIGGER'); 
+EXECUTE DelObject ('rental_insert_trigger','TRIGGER'); 
 EXECUTE DelObject ('update_bike_out','TRIGGER'); 
 EXECUTE DelObject ('rental_bike','TABLE'); 
 
@@ -445,7 +446,7 @@ COMMIT;
 --   END;
 --   /
 
-CREATE OR REPLACE TRIGGER Rental_Insert_Trigger
+CREATE OR REPLACE TRIGGER rental_insert_trigger
 AFTER INSERT ON rental_bike
 FOR EACH ROW
 DECLARE
