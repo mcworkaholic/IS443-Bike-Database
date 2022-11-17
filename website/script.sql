@@ -211,7 +211,7 @@ address VARCHAR2(200) NOT NULL,
 phone VARCHAR2(20) NOT NULL,
 registration_date DATE NOT NULL,
 num_rentals INTEGER CONSTRAINT num_rental_check CHECK(num_rentals <= 2),
-unpaid_balance NUMERIC (5,2) CONSTRAINT balance_check CHECK(unpaid_balance <= 500.00)
+unpaid_balance NUMBER (6,2) CONSTRAINT balance_check CHECK(unpaid_balance <= 500.00) 
 ); 
 
 CREATE SEQUENCE member_id_seq;
@@ -416,3 +416,67 @@ COMMIT;
 --UPDATE rental_detail SET location_return = 3 WHERE exp_return = (SELECT TRUNC(rented_out) FROM rental_bike WHERE bike_id = 2 AND member_id =1) + (SELECT days_out FROM rental_bike WHERE bike_id = 2 AND member_id = 1);
 
 --SELECT ((act_return - exp_return)*20) FROM rental_detail WHERE rental_id = (SELECT rental_id FROM rental_bike WHERE bike_id = 1 AND member_id =1 AND days_out = 1 AND rented_out = (SELECT exp_return -1 FROM rental_detail);
+
+----Gets needed information for update trigger
+--SELECT rental_detail.rental_id, rental_bike.member_id, rental_detail.exp_return, rental_detail.act_return
+--FROM rental_detail 
+--INNER JOIN rental_bike
+--ON rental_detail.rental_id = rental_bike.rental_id;
+
+
+-- --Needs WORK
+-- CREATE OR REPLACE TRIGGER add_fine 
+--   BEFORE UPDATE of unpaid_balance ON customer
+--   FOR EACH ROW
+--   DECLARE
+--   late_fine CONSTANT NUMBER(6,2):= 20.00
+--   CURSOR rental_detail_cur IS
+
+--   SELECT rental_detail.rental_id, rental_bike.member_id, rental_detail.exp_return, rental_detail.act_return
+--   FROM rental_detail 
+--   INNER JOIN rental_bike
+--   ON rental_detail.rental_id = rental_bike.rental_id;
+ 
+--   rental_detail rental_detail_cur%ROWTYPE;
+--   BEGIN
+--   IF :new.approved = 'Y' THEN
+--    :new.create_dt := SYSDATE;
+--   END IF;
+--   END;
+--   /
+
+-- CREATE OR REPLACE TRIGGER New_Trigger
+-- AFTER INSERT ON rental_bike
+-- FOR EACH ROW
+-- DECLARE
+--     expected_return := rental_bike.rented_out%TYPE
+
+--     CURSOR RentalCursor IS
+--     SELECT rental_id, member_id, bike_id, days_out, rented_out
+--     FROM rental_bike
+--     WHERE rental_bike.member_id = new.member_id;
+
+--     CURSOR BikeCursor IS
+--     SELECT bike_id, daily_fee, bike_id, location_id
+--     FROM bike
+--     WHERE bike.bike_id = new.bike_id;
+    
+--     RentalRow RentalCursor%ROWTYPE;
+--     BikeRow BikeCursor%ROWTYPE;
+-- BEGIN
+--     SELECT TRUNC(rented_out) + days_out 
+--     INTO expected_return
+--     FROM rental_bike
+--     WHERE member_id = RentalRow.member_id;
+
+--     INSERT INTO rental_detail VALUES(rental_id, exp_return, location_from)
+
+
+
+--     UPDATE Customer
+--     SET num_rentals = SELECT num_rentals + 1 FROM customer 
+--     WHERE member_id = RentalRow.member_id;
+    
+--     END IF;
+-- END; 
+-- /
