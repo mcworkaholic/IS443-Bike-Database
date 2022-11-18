@@ -326,17 +326,6 @@ rented_out DATE NOT NULL
 CREATE SEQUENCE rental_id_seq;
 CREATE SEQUENCE num_rentals_seq;
 
-CREATE OR REPLACE TRIGGER update_bike_out
-AFTER INSERT ON rental_bike
-FOR EACH ROW
-BEGIN
-  UPDATE bike
-  SET bike.status = 'out' WHERE bike.bike_id = :NEW.bike_id AND (SELECT num_rentals FROM customer WHERE member_id = :new.member_id) != 2;
-  UPDATE customer
-  SET customer.num_rentals = num_rentals_seq.nextval 
-  WHERE member_id = :new.member_id;
-END update_bike_out;
-/
 
 CREATE OR REPLACE TRIGGER rental_id_incr
 BEFORE INSERT ON rental_bike
@@ -449,38 +438,20 @@ COMMIT;
 CREATE OR REPLACE TRIGGER rental_insert_trigger
 AFTER INSERT ON rental_bike
 FOR EACH ROW
-DECLARE
-    expected_return rental_bike.rented_out%TYPE;
-    
-
-    CURSOR RentalCursor IS
-    SELECT *
-    FROM rental_bike
-    WHERE rental_bike.member_id = :new.member_id;
-
-    RentalRow RentalCursor%ROWTYPE;
-
-    CURSOR BikeCursor IS
-    SELECT *
-    FROM bike
-    WHERE bike.bike_id = :new.bike_id;
-    
-    BikeRow BikeCursor%ROWTYPE;
-
 BEGIN
-    SELECT TRUNC(rented_out) + days_out 
-    INTO expected_return
-    FROM rental_bike
-    WHERE rental_bike.member_id = RentalRow.member_id;
-
-    INSERT INTO rental_detail (rental_id, exp_return, location_from) VALUES (RentalRow.rental_id, expected_return, (SELECT bike.location_id FROM bike WHERE bike.bike_id = RentalRow.bike_id));
+    INSERT INTO rental_detail (rental_id, exp_return, location_from) VALUES (:new.rental_id, (TRUNC(:new.rented_out) + :new.days_out), (SELECT bike.location_id FROM bike WHERE bike.bike_id = :NEW.bike_id));
     
-    
-
     UPDATE Customer
-    SET num_rentals = (SELECT customer.num_rentals FROM customer WHERE customer.member_id = RentalRow.member_id) + 1;
-
-    CLOSE RentalCursor;
-    CLOSE BikeCursor;
+    SET num_rentals = (SELECT customer.num_rentals FROM customer WHERE customer.member_id = :NEW.member_id) + 1;
+    
+    UPDATE Customer
+    SET customer.unpaid_balance = ((SELECT bike.daily_fee FROM bike WHERE bike.bike_id = :NEW.bike_id ) * :new.days_out) WHERE customer.member_id = :NEW.member_id;
+    
+    UPDATE bike
+    SET bike.status = 'out' WHERE bike.bike_id = :NEW.bike_id;
 END; 
 /
+
+--INSERT INTO customer VALUES(1,'Weston','Evans', 'westone.evans@go.stcloudstate.edu','secret','scsu','555-555-5555', TO_DATE('17-NOV-22', 'DD-MON-YYYY'), 0,0);
+--INSERT INTO rental_bike VALUES(1,1,1,3, TO_DATE('17-NOV-22', 'DD-MON-YYYY'));
+--ROLLBACK;
