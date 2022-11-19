@@ -45,23 +45,29 @@ To get a local copy up and running follow these steps.
 
 ### Installation
 
-1.  Clone the repo
+1. Create a project folder
+
+2.  Clone the repo
    ```sh
    cd your-project-folder 
    git clone https://github.com/mcworkaholic/IS443-Bike-Database.git
    ```
 
-2.  Change credentials in ".env" to reflect those for your database connection 
+3.  Change credentials in "sample.env" to reflect those for your database connection and rename the file to ".env" 
 
-3.  Open "your-project-folder" via terminal and type (make sure to change the path):
+4.  If still in "your-project-folder" via terminal, type (make sure to change the path):
    
     ```sh
     pip install -r path/to/requirements.txt --upgrade
     ```
 
-4.  run script.sql in SQL developer 
+5.  run script.sql in SQL developer 
 
-5.  Run main.py and navigate to your/ip/login to test
+6.  Run main.py via terminal or your editor and navigate to your/ip/login to test
+
+    ```sh
+    python main.py
+    ```
 
 <!-- CONTRIBUTING -->
 ## Contributing
