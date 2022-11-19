@@ -61,7 +61,7 @@ To get a local copy up and running follow these steps.
 
 4.  run script.sql in SQL developer 
 
-5.  Run main.py and navigate to yourip/login to test
+5.  Run main.py and navigate to your/ip/login to test
 
 <!-- CONTRIBUTING -->
 ## Contributing
