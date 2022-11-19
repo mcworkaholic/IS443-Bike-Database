@@ -48,40 +48,30 @@ end;
 /
 -- DROP statements / Execute procedure DelObject for each obj in database
 
-EXECUTE DelObject ('location_id_seq','SEQUENCE'); 
-EXECUTE DelObject ('location_id_incr','TRIGGER'); 
+EXECUTE DelObject ('location_id_seq','SEQUENCE');  
 EXECUTE DelObject ('location','TABLE'); 
 
 EXECUTE DelObject ('member_id_seq','SEQUENCE'); 
-EXECUTE DelObject ('num_rentals_seq','SEQUENCE'); 
-EXECUTE DelObject ('member_id_incr','TRIGGER'); 
+EXECUTE DelObject ('num_rentals_seq','SEQUENCE');  
 EXECUTE DelObject ('customer','TABLE'); 
 
 EXECUTE DelObject ('category_id_seq','SEQUENCE'); 
-EXECUTE DelObject ('category_id_incr','TRIGGER'); 
 EXECUTE DelObject ('category','TABLE'); 
 
-EXECUTE DelObject ('rental_id_seq','SEQUENCE'); 
-EXECUTE DelObject ('rental_id_incr','TRIGGER'); 
-EXECUTE DelObject ('rental_insert_trigger','TRIGGER'); 
-EXECUTE DelObject ('update_bike_out','TRIGGER'); 
+EXECUTE DelObject ('rental_id_seq','SEQUENCE');    
 EXECUTE DelObject ('rental_bike','TABLE'); 
 
-EXECUTE DelObject ('detail_id_seq','SEQUENCE'); 
-EXECUTE DelObject ('detail_id_incr','TRIGGER'); 
+EXECUTE DelObject ('detail_id_seq','SEQUENCE');  
 EXECUTE DelObject ('rental_detail','TABLE');
 
-EXECUTE DelObject ('bike_id_seq','SEQUENCE'); 
-EXECUTE DelObject ('bike_id_incr','TRIGGER'); 
+EXECUTE DelObject ('bike_id_seq','SEQUENCE');  
 EXECUTE DelObject ('bike','TABLE');
 
 
-EXECUTE DelObject ('manufacturer_id_seq','SEQUENCE'); 
-EXECUTE DelObject ('manufacturer_id_incr','TRIGGER'); 
+EXECUTE DelObject ('manufacturer_id_seq','SEQUENCE');  
 EXECUTE DelObject ('manufacturer','TABLE');
 
 EXECUTE DelObject ('staff_id_seq','SEQUENCE'); 
-EXECUTE DelObject ('staff_id_incr','TRIGGER'); 
 EXECUTE DelObject ('staff','TABLE');
 
 --Setting time zone and date format
