@@ -71,6 +71,14 @@ To get a local copy up and running follow these steps.
     python main.py
     ```
 
+## Assignment Prompt
+
+![Page1](Assignment-Photos/0.png)
+
+![Page2](Assignment-Photos/1.png)
+
+![Page3](Assignment-Photos/2.png)
+
 <!-- CONTRIBUTING -->
 ## Contributing
 
@@ -93,8 +101,6 @@ Don't forget to give the project a star! Thanks again!
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
-
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 [contributors-shield]: https://img.shields.io/github/contributors/mcworkaholic/IS443-Bike-Database.svg?style=for-the-badge
@@ -110,13 +116,3 @@ Don't forget to give the project a star! Thanks again!
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://linkedin.com/in/weston-evans
 [product-screenshot]: images/screenshot.png
-
-## Assignment Prompt
-
-![Page1](Assignment-Photos/0.png)
-
-![Page2](Assignment-Photos/1.png)
-
-![Page3](Assignment-Photos/2.png)
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
