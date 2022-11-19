@@ -1,12 +1,5 @@
 Group Project: Bike Rental Database
 
-![Page1](Assignment-Photos/0.png)
-
-![Page2](Assignment-Photos/1.png)
-
-![Page3](Assignment-Photos/2.png)
-
-
 <!-- Improved compatibility of back to top link: See: https://github.com/othneildrew/Best-README-Template/pull/73 -->
 <a name="readme-top"></a>
 <!--
@@ -116,3 +109,8 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 [linkedin-url]: https://linkedin.com/in/weston-evans
 [product-screenshot]: images/screenshot.png
 
+![Page1](Assignment-Photos/0.png)
+
+![Page2](Assignment-Photos/1.png)
+
+![Page3](Assignment-Photos/2.png)
