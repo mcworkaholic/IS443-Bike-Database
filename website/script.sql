@@ -211,8 +211,8 @@ password VARCHAR2(200) NOT NULL,
 address VARCHAR2(200) NOT NULL,
 phone VARCHAR2(20) NOT NULL,
 registration_date DATE NOT NULL,
-num_rentals INTEGER CONSTRAINT num_rental_check CHECK(num_rentals <= 2),
-unpaid_balance NUMBER (6,2) CONSTRAINT balance_check CHECK(unpaid_balance <= 500.00) 
+num_rentals INTEGER CONSTRAINT num_rental_check CHECK(num_rentals >= 0 AND num_rentals <= 2),
+unpaid_balance NUMBER (6,2) 
 ); 
 
 CREATE SEQUENCE member_id_seq;
@@ -324,8 +324,6 @@ rented_out DATE NOT NULL
 ); 
 
 CREATE SEQUENCE rental_id_seq;
-CREATE SEQUENCE num_rentals_seq;
-
 
 CREATE OR REPLACE TRIGGER rental_id_incr
 BEFORE INSERT ON rental_bike
@@ -334,7 +332,7 @@ BEGIN
     SELECT rental_id_seq.nextval
     INTO :new.rental_id
     FROM DUAL;
-    SELECT SYSDATE 
+    SELECT CURRENT_DATE 
     INTO :new.rented_out
     FROM DUAL;
 END; 
@@ -365,93 +363,50 @@ END;
 
 COMMIT;
 
---INSERT INTO rental_bike
---(member_id, bike_id, rented_out)
---VALUES(1, 3, (TO_DATE('09-19-2022', 'MM-DD-YYYY')));
---ROLLBACK;
---WORKING UPDATE
---UPDATE  customer SET customer.unpaid_balance = (SELECT unpaid_balance FROM customer WHERE customer.member_id = 1) + (80.00 * 3) WHERE customer.member_id = 1; 
-
---SELECT * FROM bike INNER JOIN category ON bike.category_id = category.category_id INNER JOIN manufacturer ON bike.manufacturer_id = manufacturer.manufacturer_id ORDER BY bike_id;
-
--- INSERT INTO rental_detail (rental_id, exp_return, location_from)
-
--- VALUES ((SELECT rental_bike.rental_id FROM rental_bike WHERE rental_bike.member_id = 1 AND rental_bike.rented_out = TO_DATE('13-NOV-22') AND rental_bike.bike_id = 4), ((SELECT rented_out FROM rental_bike WHERE rental_bike.member_id = 1 AND rental_bike.bike_id = 4 AND rented_out = TO_DATE('13-NOV-22'))+7), (SELECT bike.location_id FROM bike WHERE bike.bike_id = 4));
-
---SELECT daily_fee FROM bike;
-
---INSERT INTO rental_bike VALUES(1,1,1, TO_DATE('17-NOV-22', 'DD-MON-YYYY')); 
-
---working date selection
---SELECT TO_DATE('11-13-2022', 'MM-DD-YYYY') FROM dual;
-
-
---SELECT rented_out + 7 FROM rental_bike WHERE rental_bike.member_id = 1 AND rental_bike.bike_id = :3 AND TRUNC(rented_out) = TO_DATE('14-NOV-22', 'dd-MON-yy')
-
---UPDATE customer SET customer.num_rentals = ((SELECT num_rentals FROM customer WHERE customer.member_id =1) -1);
-
---SELECT rented_out + 7 FROM rental_bike WHERE rental_bike.member_id = 1 AND rental_bike.bike_id = 2 AND trunc(rented_out) = '15-NOV-2022';
---SELECT num_rentals, unpaid_balance FROM customer WHERE customer.member_id=1;
-
---WORKING join
---SELECT * FROM rental_detail
---INNER JOIN rental_bike
---ON rental_detail.rental_id = rental_bike.rental_id;
-
-
----WORKING rental_detail update for act_return
---UPDATE rental_detail SET act_return = TO_DATE('18-NOV-2022', 'dd-MON-YYYY') WHERE exp_return = (SELECT TRUNC(rented_out) FROM rental_bike WHERE bike_id = 2 AND member_id = 1) + (SELECT days_out FROM rental_bike WHERE bike_id = 2 AND member_id = 1);
---
----WORKING rental_detail update for location_return
---UPDATE rental_detail SET location_return = 3 WHERE exp_return = (SELECT TRUNC(rented_out) FROM rental_bike WHERE bike_id = 2 AND member_id =1) + (SELECT days_out FROM rental_bike WHERE bike_id = 2 AND member_id = 1);
-
---SELECT ((act_return - exp_return)*20) FROM rental_detail WHERE rental_id = (SELECT rental_id FROM rental_bike WHERE bike_id = 1 AND member_id =1 AND days_out = 1 AND rented_out = (SELECT exp_return -1 FROM rental_detail);
-
-----Gets needed information for update trigger
---SELECT rental_detail.rental_id, rental_bike.member_id, rental_detail.exp_return, rental_detail.act_return
---FROM rental_detail 
---INNER JOIN rental_bike
---ON rental_detail.rental_id = rental_bike.rental_id;
-
-
--- --Needs WORK
--- CREATE OR REPLACE TRIGGER add_fine 
---   BEFORE UPDATE of unpaid_balance ON customer
---   FOR EACH ROW
---   DECLARE
---   late_fine CONSTANT NUMBER(6,2):= 20.00
---   CURSOR rental_detail_cur IS
-
---   SELECT rental_detail.rental_id, rental_bike.member_id, rental_detail.exp_return, rental_detail.act_return
---   FROM rental_detail 
---   INNER JOIN rental_bike
---   ON rental_detail.rental_id = rental_bike.rental_id;
- 
---   rental_detail rental_detail_cur%ROWTYPE;
---   BEGIN
---   IF :new.approved = 'Y' THEN
---    :new.create_dt := SYSDATE;
---   END IF;
---   END;
---   /
 
 CREATE OR REPLACE TRIGGER rental_insert_trigger
 AFTER INSERT ON rental_bike
 FOR EACH ROW
+DECLARE
+c_bal NUMBER;
 BEGIN
     INSERT INTO rental_detail (rental_id, exp_return, location_from) VALUES (:new.rental_id, (TRUNC(:new.rented_out) + :new.days_out), (SELECT bike.location_id FROM bike WHERE bike.bike_id = :NEW.bike_id));
     
     UPDATE Customer
     SET num_rentals = (SELECT customer.num_rentals FROM customer WHERE customer.member_id = :NEW.member_id) + 1;
     
+    SELECT customer.unpaid_balance INTO c_bal
+    FROM customer WHERE customer.member_id = :NEW.member_id;
+    
+    IF c_bal = 0  THEN
     UPDATE Customer
     SET customer.unpaid_balance = ((SELECT bike.daily_fee FROM bike WHERE bike.bike_id = :NEW.bike_id ) * :new.days_out) WHERE customer.member_id = :NEW.member_id;
+    
+    ELSE
+    UPDATE customer
+    SET customer.unpaid_balance = ((SELECT customer.unpaid_balance FROM customer WHERE customer.member_id = :new.member_id) + (SELECT bike.daily_fee FROM bike WHERE bike.bike_id = :NEW.bike_id ) * :new.days_out) WHERE customer.member_id = :NEW.member_id;
+   
+    END IF;
     
     UPDATE bike
     SET bike.status = 'out' WHERE bike.bike_id = :NEW.bike_id;
 END; 
 /
 
---INSERT INTO customer VALUES(1,'Weston','Evans', 'westone.evans@go.stcloudstate.edu','secret','scsu','555-555-5555', TO_DATE('17-NOV-22', 'DD-MON-YYYY'), 0,0);
---INSERT INTO rental_bike VALUES(1,1,1,3, TO_DATE('17-NOV-22', 'DD-MON-YYYY'));
---ROLLBACK;
+CREATE OR REPLACE TRIGGER before_rental_insert_trigger
+BEFORE INSERT ON rental_bike
+FOR EACH ROW
+DECLARE
+c_bal NUMBER;
+BEGIN 
+    SELECT customer.unpaid_balance INTO c_bal
+    FROM customer WHERE customer.member_id = :NEW.member_id;
+    
+    IF c_bal >= 500 THEN
+    raise_application_error(-20001, 'Maximum balance acheived.');
+    END IF;
+END; 
+/
+
+
+
