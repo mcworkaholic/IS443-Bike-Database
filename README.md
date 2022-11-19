@@ -70,7 +70,7 @@ To get a local copy up and running follow these steps.
     ```sh
     python main.py
     ```
-
+<div</div>
 
 ### Assignment Prompt
 
