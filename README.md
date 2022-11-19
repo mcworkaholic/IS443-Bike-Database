@@ -70,7 +70,7 @@ To get a local copy up and running follow these steps.
     ```sh
     python main.py
     ```
-<br>
+<p></p>
 ## Assignment Prompt
 
 ![Page1](Assignment-Photos/0.png)
