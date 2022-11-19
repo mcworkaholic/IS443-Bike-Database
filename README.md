@@ -36,6 +36,8 @@ To get a local copy up and running follow these steps.
 
 ### Prerequisites
 
+* A working Git installation
+  <p><a href="https://github.com/git-guides/install-git">https://github.com/git-guides/install-git</a></p>
 * Access to an Oracle database, as well as SQL developer
 
 * An editor of your choice such as VS code
