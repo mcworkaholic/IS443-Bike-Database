@@ -36,8 +36,12 @@ To get a local copy up and running follow these steps.
 
 ### Prerequisites
 
+* Oracle Instant Client
+  <p><a href="https://www.oracle.com/mx/database/technologies/instant-client/winx64-64-downloads.html>https://www.oracle.com/mx/database/technologies/instant-client/winx64-64-downloads.html</a></p>
+  
 * A working Git installation
   <p><a href="https://github.com/git-guides/install-git">https://github.com/git-guides/install-git</a></p>
+
 * Access to an Oracle database, as well as SQL developer
 
 * An editor of your choice such as VS code
