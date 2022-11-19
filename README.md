@@ -61,15 +61,17 @@ To get a local copy up and running follow these steps.
 
 3.  Change credentials in "sample.env" to reflect those for your database connection and rename the file to ".env" 
 
-4.  run script.sql in SQL developer to create the database
+4.  Change the path to your oracle instant client in __init__.py
 
-5.  If still in "your-project-folder" via terminal, type (make sure to change the path):
+5.  run script.sql in SQL developer to create the database
+
+6.  If still in "your-project-folder" via terminal, type (make sure to change the path):
    
     ```sh
     pip install -r path/to/requirements.txt --upgrade
     ```
 
-6.  Run main.py via terminal or your editor and navigate to your/ip/login to test
+7.  Run main.py via terminal or your editor and navigate to your/ip/login to test
 
     ```sh
     python main.py
