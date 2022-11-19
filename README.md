@@ -61,7 +61,7 @@ To get a local copy up and running follow these steps.
     pip install -r path/to/requirements.txt --upgrade
     ```
 
-5.  run script.sql in SQL developer 
+5.  run script.sql in SQL developer to create the database
 
 6.  Run main.py via terminal or your editor and navigate to your/ip/login to test
 
