@@ -57,7 +57,7 @@ def checkout(id:int):
                 months = { '1': 'JAN', '2': 'FEB', '3': 'MAR', '4': 'APR', '5': 'MAY', '6': 'JUN', '7': 'JUL','8': 'AUG','9': 'SEP','10': 'OCT','11': 'NOV', '12': 'DEC' }
                 member_id = current_user.member_id
                 bike_id = request.url
-                if request.form['submit_button'] == 'Return':
+                if request.form['submit_button'] == 'Return': # return button
                     return_location = request.form.get("store") # from select field
                     return_date = request.form.get("returndate") # As DD-MM-YYYY format
                     split_date = return_date.split('-')
@@ -67,17 +67,19 @@ def checkout(id:int):
                     days = None
                     with pool.acquire() as connection:
                         cursor = connection.cursor()
-                        update_cust_rentals = """UPDATE customer SET customer.num_rentals = ((SELECT num_rentals FROM customer WHERE customer.member_id =:1) -1)"""
-                        update_bike_status = """UPDATE bike SET bike.status = 'in' WHERE bike.bike_id = :1"""
-                        update_bike_location = """UPDATE bike SET bike.location_id = :1 WHERE bike.bike_id = :2"""
+                        update_cust_rentals = """UPDATE customer SET customer.num_rentals = ((SELECT num_rentals FROM customer WHERE customer.member_id =:1) -1)""" # good
+                        update_bike_status = """UPDATE bike SET bike.status = 'in' WHERE bike.bike_id = :1""" # good
+                        update_bike_location = """UPDATE bike SET bike.location_id = :1 WHERE bike.bike_id = :2""" # good
                         update_balance = """UPDATE customer SET unpaid_balance = (SELECT unpaid_balance FROM customer WHERE customer.member_id = :1) + (SELECT (TRUNC(act_return) - TRUNC(exp_return))*20 FROM rental_detail INNER JOIN rental_bike on rental_bike.rental_id = rental_detail.rental_id WHERE member_id = :2 AND bike_id = :3)""" 
                         update_act_return = """UPDATE rental_detail SET act_return = :1 WHERE exp_return = (SELECT TRUNC(rented_out) FROM rental_bike WHERE bike_id = :2 AND member_id = :3) + (SELECT days_out FROM rental_bike WHERE bike_id = :4 AND member_id = :5)"""
                         update_location_return = """UPDATE rental_detail SET location_return = :1 WHERE exp_return = (SELECT TRUNC(rented_out) FROM rental_bike WHERE bike_id = :2 AND member_id =:3) + (SELECT days_out FROM rental_bike WHERE bike_id = :4 AND member_id = :5)"""
-                        cursor.execute("ALTER SESSION SET NLS_DATE_FORMAT = 'DD-MON-YYYY HH24:MI:SS'")
+                        update_total_fee = """UPDATE rental_detail SET rental_detail.total_fee = ((SELECT bike.daily_fee FROM bike WHERE bike.bike_id = :1)*(SELECT days_out FROM rental_bike WHERE bike_id =:2 AND member_id =:3)) + (SELECT (TRUNC(act_return) - TRUNC(exp_return))*20 FROM rental_detail INNER JOIN rental_bike on rental_bike.rental_id = rental_detail.rental_id WHERE member_id = :4 AND bike_id = :5)""" 
+                        cursor.execute("ALTER SESSION SET NLS_DATE_FORMAT = 'DD-MON-YYYY HH24:MI:SS'") # good 
                         cursor.execute(update_location_return,[return_location, int(bike_id[-1])+1, current_user.member_id, int(bike_id[-1])+1, current_user.member_id])
                         cursor.execute(update_act_return,[oracle_date, int(bike_id[-1])+1, current_user.member_id, int(bike_id[-1])+1, current_user.member_id])
                         cursor.execute(update_bike_location, [return_location, int(bike_id[-1])+1])
                         cursor.execute(update_cust_rentals, [current_user.member_id])
+                        cursor.execute(update_total_fee, [int(bike_id[-1])+1, int(bike_id[-1])+1, current_user.member_id, current_user.member_id, int(bike_id[-1])+1])
                         cursor.execute(update_balance, [current_user.member_id, current_user.member_id, int(bike_id[-1])+1])
                         cursor.execute(update_bike_status, [int(bike_id[-1])+1])
                         connection.commit()
@@ -126,7 +128,7 @@ def login():
             else:
                 flash("Invalid Username or password!", "danger")
         except Exception as e:
-            flash(e, "danger")
+            flash("User not found.", "danger")
     return render_template("auth.html",
         form=form,
         text="Login",
