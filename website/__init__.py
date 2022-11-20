@@ -1,5 +1,5 @@
 from flask import Flask
-import pandas as pd
+from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 import cx_Oracle
@@ -11,9 +11,7 @@ load_dotenv()
 
 # set path to downloaded Oracle instant client here
 cx_Oracle.init_oracle_client(lib_dir="C:\\Users\\Weston\\Desktop\\instantclient-basic-windows.x64-21.7.0.0.0dbru\\instantclient_21_7")
-# pd.set_option('display.width', 1000)
-# pd.options.display.max_columns = None
-# pd.options.display.max_rows = None
+
 
 # setting credentials from .env
 un = os.getenv('ADMIN')
@@ -27,14 +25,6 @@ sid = cx_Oracle.makedsn(host, port, sid=sid)
 cstr = f'oracle://{un}:{pw}@{sid}'
           
 
-from flask_login import (
-    UserMixin,
-    login_user,
-    LoginManager,
-    current_user,
-    logout_user,
-    login_required,
-)
 
 login_manager = LoginManager()
 login_manager.session_protection = "strong"
