@@ -36,8 +36,12 @@ To get a local copy up and running follow these steps.
 
 ### Prerequisites
 
+* Oracle Instant Client
+  <p><a href="https://www.oracle.com/mx/database/technologies/instant-client/winx64-64-downloads.html">https://www.oracle.com/mx/database/technologies/instant-client/winx64-64-downloads.html</a></p>
+  
 * A working Git installation
   <p><a href="https://github.com/git-guides/install-git">https://github.com/git-guides/install-git</a></p>
+
 * Access to an Oracle database, as well as SQL developer
 
 * An editor of your choice such as VS code
@@ -57,19 +61,30 @@ To get a local copy up and running follow these steps.
 
 3.  Change credentials in "sample.env" to reflect those for your database connection and rename the file to ".env" 
 
-4.  If still in "your-project-folder" via terminal, type (make sure to change the path):
+4.  Change the path to your oracle instant client in __init__.py
+
+5.  run script.sql in SQL developer to create the database
+
+6.  If still in "your-project-folder" via terminal, type (make sure to change the path):
    
     ```sh
     pip install -r path/to/requirements.txt --upgrade
     ```
 
-5.  run script.sql in SQL developer to create the database
-
-6.  Run main.py via terminal or your editor and navigate to your/ip/login to test
+7.  Run main.py via terminal or your editor and navigate to your/ip/login to test
 
     ```sh
     python main.py
     ```
+
+
+### Assignment Prompt
+
+![Page1](Assignment-Photos/0.png)
+
+![Page2](Assignment-Photos/1.png)
+
+![Page3](Assignment-Photos/2.png)
 
 <!-- CONTRIBUTING -->
 ## Contributing
@@ -93,8 +108,6 @@ Don't forget to give the project a star! Thanks again!
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
-
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 [contributors-shield]: https://img.shields.io/github/contributors/mcworkaholic/IS443-Bike-Database.svg?style=for-the-badge
@@ -110,13 +123,3 @@ Don't forget to give the project a star! Thanks again!
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://linkedin.com/in/weston-evans
 [product-screenshot]: images/screenshot.png
-
-## Assignment Prompt
-
-![Page1](Assignment-Photos/0.png)
-
-![Page2](Assignment-Photos/1.png)
-
-![Page3](Assignment-Photos/2.png)
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
