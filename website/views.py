@@ -4,13 +4,14 @@ from datetime import timedelta, date
 import cx_Oracle
 import oracledb
 from dotenv import load_dotenv
-from flask import (Blueprint, flash, redirect, render_template, request,
+from flask import (Blueprint, make_response, flash, redirect, render_template, request, 
                    session, url_for)
 from flask_bcrypt import check_password_hash
 from flask_login import current_user, login_required, login_user, logout_user
 from sqlalchemy.exc import (DatabaseError, DataError, IntegrityError,
                             InterfaceError, InvalidRequestError)
 from werkzeug.routing import BuildError
+from multiprocessing import Value
 
 from . import bcrypt, db, login_manager
 from .forms import login_form, register_form
@@ -18,6 +19,7 @@ from .models import User
 
 views = Blueprint('views', __name__)
 
+counter = Value('i', 0)
 load_dotenv()
 
 un = os.getenv('ADMIN')
@@ -63,25 +65,22 @@ def checkout(id:int):
                     split_date = return_date.split('-')
                     new_date_str = [split_date[0], months[f"{split_date[1]}"], split_date[2]]
                     oracle_date = '-'.join(new_date_str)
-                    # date_object = datetime.datetime.strptime('-'.join(new_date_str), '%d-%b-%Y').date()
                     days = None
                     with pool.acquire() as connection:
                         cursor = connection.cursor()
-                        update_cust_rentals = """UPDATE customer SET customer.num_rentals = ((SELECT num_rentals FROM customer WHERE customer.member_id =:1) -1)""" # good
+                        update_cust_rentals = """UPDATE customer SET customer.num_rentals = (SELECT num_rentals -1 FROM customer WHERE customer.member_id =:1)""" # good
                         update_bike_status = """UPDATE bike SET bike.status = 'in' WHERE bike.bike_id = :1""" # good
                         update_bike_location = """UPDATE bike SET bike.location_id = :1 WHERE bike.bike_id = :2""" # good
-                        update_balance = """UPDATE customer SET unpaid_balance = (SELECT unpaid_balance FROM customer WHERE customer.member_id = :1) + (SELECT (TRUNC(act_return) - TRUNC(exp_return))*20 FROM rental_detail INNER JOIN rental_bike on rental_bike.rental_id = rental_detail.rental_id WHERE member_id = :2 AND bike_id = :3)""" 
-                        update_act_return = """UPDATE rental_detail SET act_return = :1 WHERE exp_return = (SELECT TRUNC(rented_out) FROM rental_bike WHERE bike_id = :2 AND member_id = :3) + (SELECT days_out FROM rental_bike WHERE bike_id = :4 AND member_id = :5)"""
-                        update_location_return = """UPDATE rental_detail SET location_return = :1 WHERE exp_return = (SELECT TRUNC(rented_out) FROM rental_bike WHERE bike_id = :2 AND member_id =:3) + (SELECT days_out FROM rental_bike WHERE bike_id = :4 AND member_id = :5)"""
-                        update_total_fee = """UPDATE rental_detail SET rental_detail.total_fee = ((SELECT bike.daily_fee FROM bike WHERE bike.bike_id = :1)*(SELECT days_out FROM rental_bike WHERE bike_id =:2 AND member_id =:3)) + (SELECT (TRUNC(act_return) - TRUNC(exp_return))*20 FROM rental_detail INNER JOIN rental_bike on rental_bike.rental_id = rental_detail.rental_id WHERE member_id = :4 AND bike_id = :5)""" 
+                        update_act_return = """UPDATE rental_detail SET act_return =:1 WHERE rental_id = :2 AND member_id = :3"""# good
+                        update_location_return = """UPDATE rental_detail SET location_return = :1 WHERE rental_id = :2 AND member_id = :3"""
+                        update_balance = """UPDATE customer SET unpaid_balance = (SELECT unpaid_balance FROM customer WHERE customer.member_id = :1) + (SELECT late_fee from rental_detail WHERE rental_id =:2 AND member_id = :3)""" # working
                         cursor.execute("ALTER SESSION SET NLS_DATE_FORMAT = 'DD-MON-YYYY HH24:MI:SS'") # good 
-                        cursor.execute(update_location_return,[return_location, int(bike_id[-1])+1, current_user.member_id, int(bike_id[-1])+1, current_user.member_id])
-                        cursor.execute(update_act_return,[oracle_date, int(bike_id[-1])+1, current_user.member_id, int(bike_id[-1])+1, current_user.member_id])
-                        cursor.execute(update_bike_location, [return_location, int(bike_id[-1])+1])
-                        cursor.execute(update_cust_rentals, [current_user.member_id])
-                        cursor.execute(update_total_fee, [int(bike_id[-1])+1, int(bike_id[-1])+1, current_user.member_id, current_user.member_id, int(bike_id[-1])+1])
-                        cursor.execute(update_balance, [current_user.member_id, current_user.member_id, int(bike_id[-1])+1])
-                        cursor.execute(update_bike_status, [int(bike_id[-1])+1])
+                        cursor.execute(update_act_return, [oracle_date, request.cookies.get('rental_id'), current_user.member_id]) # good
+                        cursor.execute(update_location_return,[return_location, request.cookies.get('rental_id'), current_user.member_id])
+                        cursor.execute(update_bike_location, [return_location, int(bike_id[-1])+1]) # good
+                        cursor.execute(update_cust_rentals, [current_user.member_id]) # good
+                        cursor.execute(update_balance, [current_user.member_id, request.cookies.get('rental_id'), current_user.member_id]) 
+                        cursor.execute(update_bike_status, [int(bike_id[-1])+1]) # good
                         connection.commit()
                 elif request.form['submit_button'] == 'Checkout':
                     days = request.form.get("quantity")
@@ -89,22 +88,34 @@ def checkout(id:int):
                         cursor = connection.cursor() 
                         cursor.execute("ALTER SESSION SET NLS_DATE_FORMAT = 'DD-MON-YYYY HH24:MI:SS'")
                         insert_rental = """INSERT INTO rental_bike (member_id, bike_id, rented_out, days_out) VALUES(:1, :2, :3, :4)"""
+                        add_rental = """UPDATE customer set num_rentals = (SELECT num_rentals + 1 FROM customer WHERE member_id =:1)"""
                         try:
-                            cursor.execute(insert_rental, [current_user.member_id, int(bike_id[-1])+1, datetime.datetime.now(), days])
-                            connection.commit()
+                            with counter.get_lock():
+                                counter.value +=1
+                                rental_id = counter.value
+                                cursor.execute(add_rental, [current_user.member_id])
+                                cursor.execute(insert_rental, [current_user.member_id, int(bike_id[-1])+1, datetime.datetime.now(), days])
+                                connection.commit()
                         except oracledb.IntegrityError as e:
                             error_obj, = e.args
+                            counter.value -=1
                             db.session.rollback()
                             flash(f"Maximum number of rentals reached.", "warning")
                             return redirect(url_for('views.checkout', id=int(bike_id[-1])))
-                        except oracledb.DatabaseError as e:    
+                        except oracledb.DatabaseError as e:
+                            counter.value -=1    
                             flash(f"Maximum account balance reached.", "warning")
                             db.session.rollback()
                             return redirect(url_for('views.checkout', id=int(bike_id[-1])))
                 if days != None:
-                    return render_template("blank.html", p =  " num_rentals: " + str(customer_data[0][0])  + " days: " + str(days) + " member_id: " + str(member_id) + " bike_id: " + str(int(bike_id[-1])+1))
+                    resp = make_response(render_template("blank.html", p = "rental_id: " + str(rental_id) + " num_rentals: " + str(customer_data[0][0])  + " days: " + str(days) + " member_id: " + str(member_id) + " bike_id: " + str(int(bike_id[-1])+1)))
+                    expire_date = datetime.datetime.now()
+                    expire_date = expire_date + datetime.timedelta(days=90)
+                    resp.set_cookie('rental_id', value=str(counter.value), expires=expire_date)
+                    return resp  
+                
                 else:
-                    return render_template("blank.html", p = str(customer_data[0])+ "  " +  "return_date: " + str(oracle_date) + " return_location: " + str(return_location)+ " member_id: " + str(member_id)+ " bike_id: "  + str(int(bike_id[-1])+1))
+                    return render_template("blank.html", p =  str(customer_data[0])+ "  " +  "return_date: " + str(oracle_date) + " return_location: " + str(return_location)+ " member_id: " + str(member_id)+ " bike_id: "  + str(int(bike_id[-1])+1))
     elif request.method == "GET":
         q1 = """SELECT * FROM bike INNER JOIN category ON bike.category_id = category.category_id INNER JOIN manufacturer ON bike.manufacturer_id = manufacturer.manufacturer_id ORDER BY bike_id"""
         q2 = """SELECT location_id, city, state FROM location"""
