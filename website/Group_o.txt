@@ -47,14 +47,12 @@ end;
 -- DROP statements / Execute procedure DelObject for each obj in database
 EXECUTE DelObject ('location_id_seq','SEQUENCE');  
 EXECUTE DelObject ('location','TABLE'); 
-EXECUTE DelObject ('member_id_seq','SEQUENCE'); 
-EXECUTE DelObject ('num_rentals_seq','SEQUENCE');  
+EXECUTE DelObject ('member_id_seq','SEQUENCE');   
 EXECUTE DelObject ('customer','TABLE'); 
 EXECUTE DelObject ('category_id_seq','SEQUENCE'); 
 EXECUTE DelObject ('category','TABLE'); 
 EXECUTE DelObject ('rental_id_seq','SEQUENCE');    
-EXECUTE DelObject ('rental_bike','TABLE'); 
-EXECUTE DelObject ('detail_id_seq','SEQUENCE');  
+EXECUTE DelObject ('rental_bike','TABLE');   
 EXECUTE DelObject ('rental_detail','TABLE');
 EXECUTE DelObject ('bike_id_seq','SEQUENCE');  
 EXECUTE DelObject ('bike','TABLE');
@@ -63,7 +61,7 @@ EXECUTE DelObject ('manufacturer','TABLE');
 EXECUTE DelObject ('staff_id_seq','SEQUENCE'); 
 EXECUTE DelObject ('staff','TABLE');
 
--- SETTING DATE AND TIME FORMAT
+--SETTING DATE AND TIME FORMAT
 ALTER SESSION SET NLS_DATE_FORMAT = 'DD-MON-YYYY';
 ALTER SESSION SET TIME_ZONE='America/Chicago';
 
@@ -76,7 +74,6 @@ manufacturer_id INTEGER CONSTRAINT manufacturer_PK PRIMARY KEY,
 manufacturer_name VARCHAR2(35) NOT NULL UNIQUE
 );
 
---Sequence & Trigger created to auto-increment the primary key
 CREATE SEQUENCE manufacturer_id_seq;
 
 CREATE OR REPLACE TRIGGER manufacturer_id_incr
@@ -100,7 +97,6 @@ zipcode VARCHAR2(10) NOT NULL,
 phone VARCHAR2(20) NOT NULL
 ); 
 
---Sequence & Trigger created to auto-increment the primary key
 CREATE SEQUENCE location_id_seq;
 
 CREATE OR REPLACE TRIGGER location_id_incr
@@ -127,7 +123,6 @@ salary INTEGER NOT NULL,
 location_id INTEGER NOT NULL CONSTRAINT staff_FK REFERENCES location(location_id) ON DELETE CASCADE
 ); 
 
---Sequence & Trigger created to auto-increment the primary key
 CREATE SEQUENCE staff_id_seq;
 
 CREATE OR REPLACE TRIGGER staff_id_incr
@@ -157,8 +152,8 @@ num_rentals INTEGER CONSTRAINT num_rental_check CHECK(num_rentals >= 0 AND num_r
 unpaid_balance NUMBER (6,2) 
 ); 
 
---Sequence & Trigger created to auto-increment the primary key
 CREATE SEQUENCE member_id_seq;
+
 
 CREATE OR REPLACE TRIGGER member_id_incr
 BEFORE INSERT ON customer
@@ -179,7 +174,6 @@ category_id INTEGER CONSTRAINT category_PK PRIMARY KEY,
 category_name VARCHAR2(20) NOT NULL UNIQUE
 ); 
 
---Sequence & Trigger created to auto-increment the primary key
 CREATE SEQUENCE category_id_seq;
 
 CREATE OR REPLACE TRIGGER category_id_incr
@@ -208,7 +202,6 @@ manufacturer_id INTEGER NOT NULL CONSTRAINT manufacturer_FK REFERENCES manufactu
 location_id INTEGER CONSTRAINT location_FK REFERENCES location(location_id) ON DELETE CASCADE
 ); 
 
---Sequence & Trigger created to auto-increment the primary key
 CREATE SEQUENCE bike_id_seq;
 
 CREATE OR REPLACE TRIGGER bike_id_incr
@@ -232,7 +225,6 @@ days_out INTEGER NOT NULL,
 rented_out DATE NOT NULL
 ); 
 
---Sequence & Trigger created to auto-increment the primary key
 CREATE SEQUENCE rental_id_seq;
 
 CREATE OR REPLACE TRIGGER rental_id_incr
@@ -251,30 +243,23 @@ END;
 --rental_detail TABLE Creation
 
 CREATE  TABLE rental_detail (
-detail_id INTEGER NOT NULL CONSTRAINT rental_detail_PK PRIMARY KEY,
 rental_id INTEGER NOT NULL CONSTRAINT rental_id_FK REFERENCES rental_bike(rental_id) ON DELETE CASCADE,
+member_id INTEGER NOT NULL CONSTRAINT member_d_FK REFERENCES customer(member_id) ON DELETE CASCADE,
 exp_return DATE NOT NULL,
 act_return DATE,
 location_from INTEGER NOT NULL CONSTRAINT rented_from_FK REFERENCES location(location_id) ON DELETE CASCADE,
 location_return INTEGER CONSTRAINT returned_FK REFERENCES location(location_id) ON DELETE CASCADE,
-total_fee NUMBER(6,2)
+late_fee NUMBER(6,2) NOT NULL,
+rent_fee NUMBER(6,2)
 ); 
 
---Sequence & Trigger created to auto-increment the primary key
-CREATE SEQUENCE detail_id_seq;
+-- Adds a composite primary key as the identifier
 
-CREATE OR REPLACE TRIGGER detail_id_incr
-BEFORE INSERT ON rental_detail
-FOR EACH ROW
-BEGIN
-    SELECT detail_id_seq.nextval
-    INTO :new.detail_id
-    FROM DUAL;
-END; 
-/
+ALTER TABLE rental_detail
+ADD PRIMARY KEY (rental_id, member_id) ENABLE;
 
 
----------------------------Important Triggers-------------------------
+---------------------------Important Triggers & Procedures-------------------------
 /*
 rental_insert_trigger inserts relevant data into the rental_detail table, 
 updates customer fields of num_rentals and unpaid_balance, 
@@ -287,7 +272,7 @@ FOR EACH ROW
 DECLARE
 c_bal NUMBER;
 BEGIN
-    INSERT INTO rental_detail (rental_id, exp_return, location_from) VALUES (:new.rental_id, (TRUNC(:new.rented_out) + :new.days_out), (SELECT bike.location_id FROM bike WHERE bike.bike_id = :NEW.bike_id));
+    INSERT INTO rental_detail (rental_id, member_id, exp_return, location_from, late_fee, rent_fee) VALUES (:new.rental_id, :new.member_id, (TRUNC(:new.rented_out) + :new.days_out), (SELECT bike.location_id FROM bike WHERE bike.bike_id = :NEW.bike_id), 0, (SELECT daily_fee*:NEW.days_out FROM bike WHERE bike_id = :NEW.bike_id));
     
     UPDATE Customer
     SET num_rentals = (SELECT customer.num_rentals FROM customer WHERE customer.member_id = :NEW.member_id) + 1;
@@ -341,7 +326,22 @@ END mainblock;
 DBMS_OUTPUT.put_line('Customer Balance: '|| c_bal);    
     END; 
 /
--------------------------------Record-Insertion---------------------------------------
+
+/*
+before_rental_update_trigger calculates the late fee for each transaction based on a $20/day rate 
+*/
+CREATE OR REPLACE TRIGGER before_return_update_trigger
+BEFORE UPDATE OF act_return ON rental_detail
+FOR EACH ROW
+BEGIN 
+    :NEW.late_fee := (:NEW.act_return - :OLD.exp_return)*20;
+END; 
+/
+
+
+-------------------------------------------------------------------------------------------
+
+--Record Insertion
 
 --Row 1
 INSERT INTO MANUFACTURER (MANUFACTURER_NAME) VALUES ('Santa Cruz');
@@ -428,3 +428,4 @@ INSERT INTO BIKE (PRODUCT, DESCRIPTION, CATEGORY_ID, STATUS, MANUFACTURER_ID, LO
 INSERT INTO BIKE (PRODUCT, DESCRIPTION, CATEGORY_ID, STATUS, MANUFACTURER_ID, LOCATION_ID, DAILY_FEE, IMG_PATH) VALUES ('District 4 Equipped','District 4 Equipped is a hip and stylish high-end city bike designed for fun on cruises, commutes, and trips around town. It has a quiet, low-maintenance Gates CDX belt drive system with an 8-speed Shimano Alfine internal hub for smooth, crisp shifting.',6,'in',3,1,150,'District 4 Equipped.jpg');
 
 COMMIT;
+
