@@ -71,7 +71,7 @@ To get a local copy up and running follow these steps.
     pip install -r path/to/requirements.txt --upgrade
     ```
 
-7.  Run main.py via terminal or your editor and navigate to your/ip/login to test
+7.  Run main.py via terminal or your editor and navigate to your/ip/login to test the required business rules
 
     ```sh
     python main.py
