@@ -11,7 +11,7 @@ from flask_login import current_user, login_required, login_user, logout_user
 from sqlalchemy.exc import (DatabaseError, DataError, IntegrityError,
                             InterfaceError, InvalidRequestError)
 from werkzeug.routing import BuildError
-from multiprocessing import Value
+
 
 from . import bcrypt, db, login_manager
 from .forms import login_form, register_form
@@ -19,7 +19,6 @@ from .models import User
 
 views = Blueprint('views', __name__)
 
-counter = Value('i', 0)
 load_dotenv()
 
 un = os.getenv('ADMIN')
@@ -68,51 +67,43 @@ def checkout(id:int):
                     days = None
                     with pool.acquire() as connection:
                         cursor = connection.cursor()
-                        update_cust_rentals = """UPDATE customer SET customer.num_rentals = (SELECT num_rentals -1 FROM customer WHERE customer.member_id =:1)""" # good
-                        update_bike_status = """UPDATE bike SET bike.status = 'in' WHERE bike.bike_id = :1""" # good
-                        update_bike_location = """UPDATE bike SET bike.location_id = :1 WHERE bike.bike_id = :2""" # good
-                        update_act_return = """UPDATE rental_detail SET act_return =:1 WHERE rental_id = :2 AND member_id = :3"""# good
-                        update_location_return = """UPDATE rental_detail SET location_return = :1 WHERE rental_id = :2 AND member_id = :3"""
-                        update_balance = """UPDATE customer SET unpaid_balance = (SELECT unpaid_balance FROM customer WHERE customer.member_id = :1) + (SELECT late_fee from rental_detail WHERE rental_id =:2 AND member_id = :3)""" # working
-                        cursor.execute("ALTER SESSION SET NLS_DATE_FORMAT = 'DD-MON-YYYY HH24:MI:SS'") # good 
-                        cursor.execute(update_act_return, [oracle_date, request.cookies.get('rental_id'), current_user.member_id]) # good
-                        cursor.execute(update_location_return,[return_location, request.cookies.get('rental_id'), current_user.member_id])
-                        cursor.execute(update_bike_location, [return_location, int(bike_id[-1])+1]) # good
-                        cursor.execute(update_cust_rentals, [current_user.member_id]) # good
-                        cursor.execute(update_balance, [current_user.member_id, request.cookies.get('rental_id'), current_user.member_id]) 
-                        cursor.execute(update_bike_status, [int(bike_id[-1])+1]) # good
+                        update_cust_rentals = """UPDATE customer SET customer.num_rentals = (SELECT num_rentals -1 FROM customer WHERE customer.member_id =:1)""" 
+                        update_bike_status = """UPDATE bike SET bike.status = 'in' WHERE bike.bike_id = :1""" 
+                        update_bike_location = """UPDATE bike SET bike.location_id = :1 WHERE bike.bike_id = :2""" 
+                        update_act_return = """UPDATE rental_detail SET act_return =:1 WHERE rental_id = (SELECT rental_id FROM rental_bike WHERE bike_id = :2 AND member_ID = :3 AND rental_status = 'incomplete')"""
+                        update_location_return = """UPDATE rental_detail SET location_return = :1 WHERE rental_id = (SELECT rental_id FROM rental_bike WHERE bike_id = :2 AND member_id = :3 AND rental_status = 'incomplete')"""
+                        update_balance = """UPDATE customer SET unpaid_balance = (SELECT unpaid_balance FROM customer WHERE customer.member_id = :1) + (SELECT late_fee from rental_detail WHERE rental_id = (SELECT rental_id FROM rental_bike WHERE bike_id = :2 AND member_id = :3 AND rental_status = 'incomplete'))""" 
+                        update_rental_status = """UPDATE rental_bike SET rental_status = 'complete' WHERE rental_id = (SELECT rental_id FROM rental_bike WHERE bike_id = :1 AND member_id = :2 AND rental_status = 'incomplete')"""
+                        cursor.execute("ALTER SESSION SET NLS_DATE_FORMAT = 'DD-MON-YYYY HH24:MI:SS'") 
+                        cursor.execute(update_act_return, [oracle_date, int(bike_id[-1])+1, current_user.member_id]) 
+                        cursor.execute(update_location_return,[return_location, int(bike_id[-1])+1, current_user.member_id])
+                        cursor.execute(update_bike_location, [return_location, int(bike_id[-1])+1]) 
+                        cursor.execute(update_cust_rentals, [current_user.member_id]) 
+                        cursor.execute(update_balance, [current_user.member_id, int(bike_id[-1])+1, current_user.member_id]) 
+                        cursor.execute(update_bike_status, [int(bike_id[-1])+1]) 
+                        cursor.execute(update_rental_status, [int(bike_id[-1])+1, current_user.member_id])
                         connection.commit()
                 elif request.form['submit_button'] == 'Checkout':
                     days = request.form.get("quantity")
                     with pool.acquire() as connection:
                         cursor = connection.cursor() 
                         cursor.execute("ALTER SESSION SET NLS_DATE_FORMAT = 'DD-MON-YYYY HH24:MI:SS'")
-                        insert_rental = """INSERT INTO rental_bike (member_id, bike_id, rented_out, days_out) VALUES(:1, :2, :3, :4)"""
+                        insert_rental = """INSERT INTO rental_bike (member_id, bike_id, rented_out, days_out, rental_status) VALUES(:1, :2, :3, :4, :5)"""
                         add_rental = """UPDATE customer set num_rentals = (SELECT num_rentals + 1 FROM customer WHERE member_id =:1)"""
                         try:
-                            with counter.get_lock():
-                                counter.value +=1
-                                rental_id = counter.value
-                                cursor.execute(add_rental, [current_user.member_id])
-                                cursor.execute(insert_rental, [current_user.member_id, int(bike_id[-1])+1, datetime.datetime.now(), days])
-                                connection.commit()
-                        except oracledb.IntegrityError as e:
-                            error_obj, = e.args
-                            counter.value -=1
+                            cursor.execute(add_rental, [current_user.member_id])
+                            cursor.execute(insert_rental, [current_user.member_id, int(bike_id[-1])+1, datetime.datetime.now(), days, 'incomplete'])
+                            connection.commit()
+                        except oracledb.IntegrityError:
                             db.session.rollback()
                             flash(f"Maximum number of rentals reached.", "warning")
                             return redirect(url_for('views.checkout', id=int(bike_id[-1])))
-                        except oracledb.DatabaseError as e:
-                            counter.value -=1    
+                        except oracledb.DatabaseError:  
                             flash(f"Maximum account balance reached.", "warning")
                             db.session.rollback()
                             return redirect(url_for('views.checkout', id=int(bike_id[-1])))
                 if days != None:
-                    resp = make_response(render_template("blank.html", p = "rental_id: " + str(rental_id) + " num_rentals: " + str(customer_data[0][0])  + " days: " + str(days) + " member_id: " + str(member_id) + " bike_id: " + str(int(bike_id[-1])+1)))
-                    expire_date = datetime.datetime.now()
-                    expire_date = expire_date + datetime.timedelta(days=90)
-                    resp.set_cookie('rental_id', value=str(counter.value), expires=expire_date)
-                    return resp  
+                    return render_template("blank.html", p = " num_rentals: " + str(customer_data[0][0])  + " days: " + str(days) + " member_id: " + str(member_id) + " bike_id: " + str(int(bike_id[-1])+1))
                 
                 else:
                     return render_template("blank.html", p =  str(customer_data[0])+ "  " +  "return_date: " + str(oracle_date) + " return_location: " + str(return_location)+ " member_id: " + str(member_id)+ " bike_id: "  + str(int(bike_id[-1])+1))
