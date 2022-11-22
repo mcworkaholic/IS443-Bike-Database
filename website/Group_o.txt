@@ -222,7 +222,8 @@ rental_id INTEGER NOT NULL CONSTRAINT bike_rental_PK PRIMARY KEY,
 member_id INTEGER NOT NULL CONSTRAINT member_id_FK REFERENCES customer(member_id) ON DELETE CASCADE,
 bike_id INTEGER NOT NULL CONSTRAINT bike_fk REFERENCES bike(bike_id) ON DELETE CASCADE,
 days_out INTEGER NOT NULL,
-rented_out DATE NOT NULL
+rented_out DATE NOT NULL,
+rental_status VARCHAR2(10)
 ); 
 
 CREATE SEQUENCE rental_id_seq;
@@ -274,9 +275,6 @@ c_bal NUMBER;
 BEGIN
     INSERT INTO rental_detail (rental_id, member_id, exp_return, location_from, late_fee, rent_fee) VALUES (:new.rental_id, :new.member_id, (TRUNC(:new.rented_out) + :new.days_out), (SELECT bike.location_id FROM bike WHERE bike.bike_id = :NEW.bike_id), 0, (SELECT daily_fee*:NEW.days_out FROM bike WHERE bike_id = :NEW.bike_id));
     
-    UPDATE Customer
-    SET num_rentals = (SELECT customer.num_rentals FROM customer WHERE customer.member_id = :NEW.member_id) + 1;
-    
     SELECT customer.unpaid_balance INTO c_bal
     FROM customer WHERE customer.member_id = :NEW.member_id;
     
@@ -314,7 +312,7 @@ BEGIN
     SELECT customer.unpaid_balance INTO c_bal FROM customer WHERE member_id = :NEW.member_id;
     IF c_bal >= 500 THEN
     DBMS_OUTPUT.put_line('Customer Balance: '|| c_bal); 
-    raise_application_error(-20001, 'Maximum balance acheived.');   
+    raise_application_error(-20001, 'Maximum account balance reached.');   
     END IF;
     
     END LOOP;
@@ -337,7 +335,6 @@ BEGIN
     :NEW.late_fee := (:NEW.act_return - :OLD.exp_return)*20;
 END; 
 /
-
 
 -------------------------------------------------------------------------------------------
 
