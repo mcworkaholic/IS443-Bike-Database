@@ -332,7 +332,11 @@ CREATE OR REPLACE TRIGGER before_return_update_trigger
 BEFORE UPDATE OF act_return ON rental_detail
 FOR EACH ROW
 BEGIN 
+    IF :NEW.act_return > :OLD.exp_return THEN
     :NEW.late_fee := (:NEW.act_return - :OLD.exp_return)*20;
+    ELSE 
+    :NEW.late_fee := 0;
+    END IF;
 END; 
 /
 
