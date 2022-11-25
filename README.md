@@ -86,6 +86,8 @@ To get a local copy up and running follow these steps.
 
 ![Page3](Assignment-Photos/2.png)
 
+![ERD](ERDs/112422ERD.png)
+
 <!-- CONTRIBUTING -->
 ## Contributing
 
