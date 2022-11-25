@@ -86,8 +86,10 @@ To get a local copy up and running follow these steps.
 
 ![Page3](Assignment-Photos/2.png)
 
+<div>
 <img align="middle" src="https://github.com/mcworkaholic/IS443-Bike-Database/blob/main/ERDs/112422ERD.png" width="640px">
-
+</div
+  
 <!-- CONTRIBUTING -->
 ## Contributing
 
