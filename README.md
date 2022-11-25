@@ -86,7 +86,7 @@ To get a local copy up and running follow these steps.
 
 ![Page3](Assignment-Photos/2.png)
 
-<center><img src="ERDs/112422ERD.png"></center>
+<img src="ERDs/112422ERD.png" style="margin-left:75px">
 
 
   
