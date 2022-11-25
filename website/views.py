@@ -1,10 +1,10 @@
 import datetime
 import os
-from datetime import timedelta, date
+from datetime import timedelta
 import cx_Oracle
 import oracledb
 from dotenv import load_dotenv
-from flask import (Blueprint, make_response, flash, redirect, render_template, request, 
+from flask import (Blueprint, flash, redirect, render_template, request, 
                    session, url_for)
 from flask_bcrypt import check_password_hash
 from flask_login import current_user, login_required, login_user, logout_user
@@ -84,7 +84,7 @@ def checkout(id:int):
                         cursor.execute(update_rental_status, [int(bike_id[-1])+1, current_user.member_id])
                         connection.commit()
                 elif request.form['submit_button'] == 'Checkout':
-                    days = request.form.get("quantity")
+                    days = request.form.get("quantity") # days 
                     with pool.acquire() as connection:
                         cursor = connection.cursor() 
                         cursor.execute("ALTER SESSION SET NLS_DATE_FORMAT = 'DD-MON-YYYY HH24:MI:SS'")
@@ -98,8 +98,9 @@ def checkout(id:int):
                             db.session.rollback()
                             flash(f"Maximum number of rentals reached.", "warning")
                             return redirect(url_for('views.checkout', id=int(bike_id[-1])))
-                        except oracledb.DatabaseError:  
-                            flash(f"Maximum account balance reached.", "warning")
+                        except oracledb.DatabaseError as e:
+                            error_obj, = e.args  
+                            flash("Maximum account balance reached.", "warning")
                             db.session.rollback()
                             return redirect(url_for('views.checkout', id=int(bike_id[-1])))
                 if days != None:
