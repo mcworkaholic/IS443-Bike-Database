@@ -1,6 +1,6 @@
 
 --IS 443/543 Fall Semester 2022
---Group O - Weston Evans & Saicharan Gattepalli
+--Group O - Weston Evans & Saicharan Gattepalli 
 
 --Create a procedure similar to DROP IF EXISTS
 CREATE OR REPLACE PROCEDURE DelObject(ObjName varchar2,ObjType varchar2)
@@ -341,6 +341,12 @@ BEGIN
 END; 
 /
 
+/*
+ALL other triggers are written at the application level in "views.py"  
+
+All code and design written by Weston Evans
+
+*/
 -------------------------------------------------------------------------------------------
 
 --Record Insertion

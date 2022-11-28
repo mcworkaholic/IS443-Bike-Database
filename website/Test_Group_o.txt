@@ -7,8 +7,9 @@ DROP SEQUENCE member_id_seq;
 INSERT INTO customer (member_id, fname, lname, email, password, address, phone, registration_date, num_rentals, unpaid_balance) 
 VALUES (1,'Weston', 'Evans', 'weston.evans@go.stcloudstate.edu', 'supersecret', 'SCSU', '555-555-5555', TO_DATE('19-NOV-22'), 1, 0);
 INSERT INTO rental_bike (member_id, bike_id, days_out, rented_out) VALUES(1, 1, 3, TO_DATE('19-NOV-22')); --works
-INSERT INTO rental_bike (member_id, bike_id, days_out, rented_out) VALUES(1, 2, 3, TO_DATE('19-NOV-22')); --breaks constraint
-----------------------------------------------------------------------------------------------------------------------------------
+UPDATE customer set num_rentals = (SELECT num_rentals +1 FROM customer WHERE member_id = 1); -- DONE AT THE APPLICATION LEVEL
+INSERT INTO rental_bike (member_id, bike_id, days_out, rented_out) VALUES(1, 2, 3, TO_DATE('19-NOV-22')); 
+UPDATE customer set num_rentals = (SELECT num_rentals +1 FROM customer WHERE member_id = 1); -- DONE AT THE APPLICATION LEVEL --breaks constraint
 ROLLBACK;
 ----------------------------------------------------------------------------------------------------------------------------------
 /*
@@ -21,7 +22,11 @@ INSERT INTO customer (member_id,fname, lname, email, password, address, phone, r
 VALUES (1,'Weston', 'Evans', 'weston.evans@go.stcloudstate.edu', 'supersecret', 'SCSU', '555-555-5555', TO_DATE('19-NOV-22'), 0, 200);
 INSERT INTO rental_bike (member_id, bike_id, days_out, rented_out) VALUES(1, 1, 8, TO_DATE('19-NOV-22')); --works
 INSERT INTO rental_bike (member_id, bike_id, days_out, rented_out) VALUES(1, 2, 1, TO_DATE('19-NOV-22')); --breaks $500 limit for new rentals
+ROLLBACK;
+
 
 /*
+
 Business Rule #2(late fees, status update, location update) will need to be tested out via the application's user interface
+
 */
