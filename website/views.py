@@ -117,7 +117,7 @@ def checkout(id:int):
                     product_data = cursor.fetchall()
                     cursor.execute(q2)
                     location_data = cursor.fetchall()
-        return render_template("checkout.html", pdata = product_data[id], user=current_user, ldata=location_data)
+        return render_template("checkout.html", pdata = product_data[id], isCheckout=True, user=current_user, ldata=location_data)
 
 @views.route("/login/", methods=("GET", "POST"), strict_slashes=False)
 def login():
@@ -192,11 +192,37 @@ def register():
         title="Register",
         btn_action="Register account"
         )
+
 @views.route("/logout")
 @login_required
 def logout():
     logout_user()
     return redirect(url_for('views.login'))
+
+@views.route("/account", methods=("GET", "POST"), strict_slashes=False)
+@login_required
+def account():
+    if request.method == "POST":
+        update_account = """UPDATE customer SET unpaid_balance = 0 WHERE member_id=:2"""
+        if request.form['submit_button'] == 'Balance':
+            with pool.acquire() as connection:
+                with connection.cursor() as cursor:
+                    cursor.execute(update_account, [current_user.member_id])
+    return render_template('account.html', isAccount=True)
+
+@views.route('/api/data/user', methods=("GET", "POST"))
+@login_required
+def userData():
+    if request.method == "GET":
+     with pool.acquire() as connection:
+        with connection.cursor() as cursor:
+            customer_data = cursor.execute("""SELECT * FROM customer WHERE customer.member_id=:member_id""", member_id = current_user.member_id).fetchall()
+
+    # response
+    return {
+        'data': customer_data,
+        'total': 1,
+    }
 
 
 
