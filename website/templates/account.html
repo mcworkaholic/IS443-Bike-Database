@@ -1,0 +1,75 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div role="main" class="main shop pt-4">
+		<div class="container">
+          <h1>Account</h1>
+                <hr>
+			<div id="table"></div>
+      <form enctype="multipart/form-data" method="POST" class="cart" action="#">
+        <div class="row">
+        <button type="submit"  name="submit_button" value="Balance" class="btn btn-dark btn-modern text-uppercase bg-color-hover-primary border-color-hover-primary mt-5 ml-3">Pay Balance</button>
+        </form>
+        </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/gridjs.umd.js') }}"></script>
+  
+<!-- Page specific script -->
+<script>
+      const tableDiv = document.getElementById('table');
+
+      const updateUrl = (prev, query) => {
+        return prev + (prev.indexOf('?') >= 0 ? '&' : '?') + new URLSearchParams(query).toString();
+      };
+
+      const editableCellAttributes = (data, row, col) => {
+          if (row) {
+            return {contentEditable: 'true', 'data-element-id': row.cells[0].data};
+          }
+          else {
+            return {};
+          }
+      };
+
+      new gridjs.Grid({
+        columns: [
+          { id: 'member_id', 'hidden': true },
+          { id: 'fname', name: 'First', width: '145px',},
+          { id: 'lname', name: 'Last', width: '145px',},
+          { id: 'email', name: 'Email'},
+          { id: 'password', 'hidden': true},
+          { id: 'address', name: 'Address',width: '175px' },
+          { id: 'phone', name: 'Phone'},
+          { id: 'registration_date','hidden': true },
+          { id: 'num_rentals', name: 'Rentals', width: '145px'},
+          { id: 'unpaid_balance', name: 'Balance', width: '145px'},
+
+
+        ],
+        server: {
+          url: '/api/data/user',
+          then: results => results.data,
+          total: results => results.total,
+        },
+        search: {
+          enabled: false,
+          server: {
+            url: (prev, search) => {
+              return updateUrl(prev, {search});
+            },
+          },
+        },
+        pagination: {
+          enabled: false,
+          server: {
+            url: (prev, page, limit) => {
+              return updateUrl(prev, {start: page * limit, length: limit});
+            },
+          },
+        },
+      }).render(tableDiv);
+
+
+    </script>
+ {% endblock %}	
