@@ -16,6 +16,7 @@
 		<!-- Web Fonts  -->
 		<link id="googleFonts" href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700,800%7CShadows+Into+Light%7CPlayfair+Display:400&display=swap" rel="stylesheet" type="text/css">
 		<!-- Vendor CSS -->
+		<link href="https://unpkg.com/gridjs/dist/theme/mermaid.min.css" rel="stylesheet" />
         <link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
         <link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/all.min.css') }}">
         <link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/animate.compat.css') }}">
@@ -54,12 +55,24 @@
 									<div class="d-flex col-auto col-lg-2 pe-0 ps-0 ps-xl-3">
 										<ul class="header-extra-info">
 											<li class="ms-0 ms-xl-4">
-												<div class="header-row py-2">
-													<a href="#" class="header-row py-2">
-														<img src="https://img.icons8.com/material-rounded/24/null/user.png"/><p class="font-weight-semibold text-1 mb-0 d-none d-md-block"style="margin-left:5px">{{current_user.fname}} {{current_user.lname}}</p>
-
+											{% if isAccount or isCheckout %}
+												<div class="header-row" style = "position:relative; right:35px;">
+													<a href="/shop" class="py-2">
+														<i class="fa fa-cart-plus" aria-hidden="true"></i>
 													</a>
 												</div>
+												<div class="py-2">
+													<a href="/account" class="header-row py-2">
+														<img src="https://img.icons8.com/material-rounded/24/null/user.png"/><p class="font-weight-semibold text-1 mb-0 d-none d-md-block"style="margin-left:5px">{{current_user.fname}} {{current_user.lname}}</p>
+													</a>
+												</div>
+												{% else %}
+												<div class="py-2">
+													<a href="/account" class="header-row py-2">
+														<img src="https://img.icons8.com/material-rounded/24/null/user.png"/><p class="font-weight-semibold text-1 mb-0 d-none d-md-block"style="margin-left:5px">{{current_user.fname}} {{current_user.lname}}</p>
+													</a>
+												</div>
+												{% endif %}
 											</li>
 										</ul>
 									</div>
