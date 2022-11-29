@@ -203,7 +203,7 @@ def logout():
 @login_required
 def account():
     if request.method == "POST":
-        update_account = """UPDATE customer SET unpaid_balance = 0 WHERE member_id=:2"""
+        update_account = """UPDATE customer SET unpaid_balance = 0 WHERE member_id=:1"""
         if request.form['submit_button'] == 'Balance':
             with pool.acquire() as connection:
                 with connection.cursor() as cursor:
