@@ -104,10 +104,12 @@ def checkout(id:int):
                             db.session.rollback()
                             return redirect(url_for('views.checkout', id=int(bike_id[-1])))
                 if days != None:
-                    return render_template("blank.html", p = " num_rentals: " + str(customer_data[0][0])  + " days: " + str(days) + " member_id: " + str(member_id) + " bike_id: " + str(int(bike_id[-1])+1))
+                    return redirect(url_for('views.shop'))
+                    # return render_template("blank.html", p = " num_rentals: " + str(customer_data[0][0])  + " days: " + str(days) + " member_id: " + str(member_id) + " bike_id: " + str(int(bike_id[-1])+1))
                 
                 else:
-                    return render_template("blank.html", p =  str(customer_data[0])+ "  " +  "return_date: " + str(oracle_date) + " return_location: " + str(return_location)+ " member_id: " + str(member_id)+ " bike_id: "  + str(int(bike_id[-1])+1))
+                    return redirect(url_for('views.shop'))
+                    # return render_template("blank.html", p =  str(customer_data[0])+ "  " +  "return_date: " + str(oracle_date) + " return_location: " + str(return_location)+ " member_id: " + str(member_id)+ " bike_id: "  + str(int(bike_id[-1])+1))
     elif request.method == "GET":
         q1 = """SELECT * FROM bike INNER JOIN category ON bike.category_id = category.category_id INNER JOIN manufacturer ON bike.manufacturer_id = manufacturer.manufacturer_id ORDER BY bike_id"""
         q2 = """SELECT location_id, city, state FROM location"""
