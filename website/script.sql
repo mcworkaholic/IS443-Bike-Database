@@ -342,7 +342,7 @@ END;
 /
 
 /*
-ALL other triggers are written at the application level in "views.py"  
+ALL other triggers are written at the application level in "website/views.py"  
 
 All code and design written by Weston Evans
 
