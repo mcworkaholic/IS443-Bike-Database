@@ -95,9 +95,9 @@ To get a local copy up and running follow these steps.
 <div align="center">
 
 [![IMAGE ALT TEXT HERE](website/static/img/youtubedemo.png)](https://www.youtube.com/watch?v=SdgFcWdQnj8)
-
-</div>
 <br><br>
+</div>
+
 <!-- CONTRIBUTING -->
 ## Contributing
 
