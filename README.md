@@ -94,7 +94,7 @@ To get a local copy up and running follow these steps.
 <br><br><br><br><br>
 <div align="center">
 
-[![IMAGE ALT TEXT HERE](website/static/img/youtubedemo.png)](https://www.youtube.com/watch?v=SdgFcWdQnj8)
+[![IMAGE ALT TEXT HERE](website/static/img/youtubedemo.png)](https://www.youtube.com/watch?v=E5_jpXJLDV4)
 <br><br>
 </div>
 
