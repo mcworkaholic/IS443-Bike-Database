@@ -1,11 +1,11 @@
-manufacturer_name
-Santa Cruz
-Diamondback
-Raleigh
-GT
-Schwinn
-Canyon
-Mongoose
-Ancheer
-Montague
-Pinarello
+manufacturer_id, manufacturer_name
+1,Santa Cruz
+2,Diamondback
+3,Raleigh
+4,GT
+5,Schwinn
+6,Canyon
+7,Mongoose
+8,Ancheer
+9,Montague
+10,Pinarello
