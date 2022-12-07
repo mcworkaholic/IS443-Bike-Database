@@ -1,8 +1,8 @@
-description,category_id,status,manufacturer_id,location_id,daily_fee
-Performer 29,1,in,4,1,40
-Atroz 2,3,in,2,1,80
-Fastback Carbon 105,2,in,5,1,120
-Lux Trail CF 7,3,in,6,1,150
-AMA5183,9,in,8,1,25
-Prince Force ETAP AXS 12S,2,in,10,1,175
-M-E1,7,in,9,1,150
+bike_id,description,category_id,status,manufacturer_id,location_id,daily_fee
+1,Performer 29,1,in,4,1,40
+2,Atroz 2,3,in,2,1,80
+3,Fastback Carbon 105,2,in,5,1,120
+4,Lux Trail CF 7,3,in,6,1,150
+5,AMA5183,9,in,8,1,25
+6,Prince Force ETAP AXS 12S,2,in,10,1,175
+7,M-E1,7,in,9,1,150
